@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net10.0-windows7.0": {
+    "net10.0-windows10.0.22000": {
       "Microsoft.Web.WebView2": {
         "type": "Direct",
         "requested": "[1.0.4258.31, )",
@@ -9,7 +9,7 @@
         "contentHash": "sHVZ2MQrHT1J3q5/6csn0fIP27rzpTO/RRC+wPQDrZheB7T4t2n+vVbY6SdCKr4WRV9s/gmBM3PPMWWJtoDzMg=="
       }
     },
-    "net10.0-windows7.0/win-x64": {
+    "net10.0-windows10.0.22000/win-x64": {
       "Microsoft.Web.WebView2": {
         "type": "Direct",
         "requested": "[1.0.4258.31, )",
