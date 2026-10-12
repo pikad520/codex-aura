@@ -7,7 +7,7 @@
 - [x] Add persisted selection to macOS and Windows controls.
 - [x] Verify settings, switching, browser pixel checks and local packaging; update multilingual usage and asset credits.
 - [x] Install locally and verify the native character picker preserves existing appearance settings.
-- [ ] Push and verify Windows native fixture/installer CI.
+- [x] Push and verify Windows native fixture/installer CI: 38234511474.
 
 - [x] Inspect existing macOS host, shared renderer and distribution scripts.
 - [x] Record scope and acceptance in specs/windows-x64.md.

@@ -34,3 +34,5 @@ Real browser pixel checks ran in Chrome 154.0.8037.98 on macOS: the saved blue s
 Optional reproduction, with Playwright and a local Chromium already available: `AURA_BROWSER_CHANNEL=chrome node tests/test-character-browser.cjs` (omit the environment variable for Playwright's own Chromium). This test starts an isolated loopback server and writes evidence only under `.build/character-check/`; Playwright is test tooling, not an application dependency. Normal app operation needs no HTTP server.
 
 Windows CI additionally loads the blue character in the native WebView2 fixture, confirms switching preserves the completed introduction, and captures `blue-overlay.png`. Actual Windows Codex interaction and physical multi-monitor/fullscreen coverage remain unverified.
+
+Both jobs passed in [CI run 38234511474](https://github.com/pikad520/codex-aura/actions/runs/38234511474) for implementation commit `ec632d7`. Windows built the 1.4.0 x64 installer, loaded both characters in its native fixture, captured the blue overlay, and passed installation/uninstallation checks. The installer is available as that run's `CodexAura-windows-x64-installer` artifact.
