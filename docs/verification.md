@@ -1,6 +1,6 @@
 # Verification / 验证记录 / 検証記録
 
-Recorded: 2026-10-12. Application version: 1.3.0.
+Recorded: 2026-10-12. Latest application version: 1.5.0. The initial baseline below is 1.3.0; later version checks follow.
 
 | Environment | Exact version | Scope |
 | --- | --- | --- |
@@ -44,3 +44,9 @@ The shared catalog has complete English, Simplified Chinese and Japanese key cov
 On macOS 26.5.1 arm64, first launch followed the actual Japanese OS language. The native panel was switched to English and Simplified Chinese and visually inspected; labels and actions fit, and the blue character and four appearance values were retained. App controls use the selected language; system-owned window chrome/dialogs and diagnostic error details may still use the OS language. No menu-dismissal fix is claimed by this release.
 
 Windows CI now captures English/Chinese/Japanese native control panels, exercises selection without changing the character or appearance, and installs/uninstalls with each of the three installer languages. OS language matching is covered deterministically; CI does not change the runner's OS display language. Actual Windows Codex interaction, physical multi-monitor/fullscreen use and macOS Intel remain unverified.
+
+Both jobs passed in [CI run 38238024050](https://github.com/pikad520/codex-aura/actions/runs/38238024050) for implementation commit `fa1c034`. Windows native evidence lists all three control languages; all three panel screenshots were visually inspected without clipped labels. English, Chinese and Japanese installer/uninstaller runs all passed, including bundled resources and startup disabled by default. The compiler was Inno Setup 6.7.1; official Chinese/Japanese messages are pinned in the repository because the runner omitted the optional Chinese language file. The existing native animation, character-switching and reduced-motion checks also passed. macOS manual language selection persisted across restart.
+
+中文：1.5.0 的 macOS 与 Windows CI 均通过。Windows 三语原生面板截图检查、三语安装卸载检查通过；macOS 实测切换语言后保留参数，重启保留语言。实机覆盖限制仍如上所述。
+
+日本語：1.5.0 の macOS・Windows CI は成功しました。Windows の 3 言語のネイティブ画面とインストール・削除を確認し、macOS では言語切り替え時の設定保持と再起動後の言語保持を確認しました。実機検証の制限は上記のとおりです。
