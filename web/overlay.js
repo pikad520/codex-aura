@@ -16,6 +16,7 @@ if (typeof document !== 'undefined') (async function () {
   let editing = false, width = 1, height = 1, rig;
   function report(value) {
     window.webkit?.messageHandlers?.aura?.postMessage(value);
+    window.chrome?.webview?.postMessage(value);
     canvas.dataset.status = value.status;
   }
   function resize() {

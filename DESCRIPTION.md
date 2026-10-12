@@ -2,12 +2,12 @@
 
 ## 中文
 
-为 macOS Codex 桌面应用增添会眨眼、发丝轻摆的动漫浮层，支持鼠标穿透、实时调色与一次性开场动画。
+Codex 动漫浮层，支持眨眼、发丝运动、鼠标穿透与实时调色。macOS 自行编译，Windows 提供 x64 安装器。
 
 ## English
 
-An animated anime overlay for Codex on macOS, with blinking eyes, flowing hair, click-through interaction, live appearance controls, and a one-time intro.
+An animated, click-through anime overlay for Codex with live appearance controls. Build locally on macOS; use the x64 installer on Windows.
 
 ## 日本語
 
-macOS の Codex に、まばたきと髪の揺れを添えるアニメ調オーバーレイ。クリック透過、リアルタイムの色調整、起動時のイントロに対応。
+まばたきと髪の揺れを添える Codex 用アニメ調オーバーレイ。クリック透過・色調整に対応。macOS はローカルビルド、Windows は x64 インストーラー。

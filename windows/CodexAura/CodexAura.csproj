@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <SelfContained>true</SelfContained>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <ApplicationIcon>aura.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.3.0</Version>
+    <!-- WPF owns DPI awareness via the manifest; WinForms is used only for the tray. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <AssemblyName>CodexAura</AssemblyName>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="aura.ico" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <Content Include="../../web/**/*" Link="Web/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../README*.md;../../LICENSE*;../../README.txt;../../docs/*.md" Link="Docs/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="CopyThirdPartyNotices" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)Docs/ThirdParty" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.web.webview2/1.0.4258.31/LICENSE.txt" DestinationFiles="$(PublishDir)Docs/ThirdParty/WebView2-LICENSE.txt" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.web.webview2/1.0.4258.31/NOTICE.txt" DestinationFiles="$(PublishDir)Docs/ThirdParty/WebView2-NOTICE.txt" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.netcore.app.runtime.win-x64/$(RuntimeFrameworkVersion)/LICENSE.TXT" DestinationFiles="$(PublishDir)Docs/ThirdParty/NET-LICENSE.txt" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.netcore.app.runtime.win-x64/$(RuntimeFrameworkVersion)/THIRD-PARTY-NOTICES.TXT" DestinationFiles="$(PublishDir)Docs/ThirdParty/NET-THIRD-PARTY-NOTICES.txt" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.windowsdesktop.app.runtime.win-x64/$(RuntimeFrameworkVersion)/LICENSE" DestinationFiles="$(PublishDir)Docs/ThirdParty/WindowsDesktop-LICENSE.txt" />
+  </Target>
+</Project>

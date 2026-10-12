@@ -25,3 +25,9 @@ __pycache__/
 *.p12
 *.p8
 *.mobileprovision
+
+# Windows build outputs and local SDK tooling
+**/bin/
+**/obj/
+/windows/publish/
+/windows/installer-output/

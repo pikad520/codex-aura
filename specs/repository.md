@@ -1,7 +1,9 @@
-# Repository migration
+# Repository scope
 
-Move the standalone Codex Aura 1.2.0 sources, original textures, build and management scripts into this repository. Preserve application behavior and installation paths. Keep generated applications, archives, caches and local diagnostics out of version control.
+Codex Aura includes a macOS AppKit host, a Windows x64 WPF/WebView2 host, and shared Canvas/WebGL animation with four original textures. Current development and distribution requirements are in [windows-x64.md](windows-x64.md).
 
-Provide English, Simplified Chinese and Japanese README files with equivalent build, use, limitations and uninstall instructions. Documentation translations do not imply a localized application UI. Provide an English MIT license for pikad520 and clearly labeled Chinese and Japanese reference translations. Include three concise GitHub descriptions.
+macOS is distributed as source only, locally built and ad-hoc signed without a Developer ID. Windows provides an x64 installer; no x86/ARM64 installer, portable ZIP, or macOS binary releases. Generated binaries, installers, caches, diagnostics and credentials stay out of Git.
 
-Acceptance: build from this root without the old workspace; verify the local signature; run migrated renderer, one-shot reveal, appearance, window policy and isolated installer tests; verify documentation links and ignore rules. Do not publish remotely or replace the installed app as part of migration.
+English, Simplified Chinese and Japanese README files describe equivalent build, use and uninstall behavior. macOS UI is Chinese; Windows UI is English. The English MIT license names pikad520; Chinese and Japanese licenses are reference translations. Dependencies retain their own licenses and notices.
+
+Verification must distinguish exact tested versions, compilation, automated fixtures, and actual Codex interaction. See [verification](../docs/verification.md). Push changes to the user-specified repository after local checks; use Windows CI for native and installer checks.

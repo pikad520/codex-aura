@@ -1,9 +1,10 @@
-# Repository preparation
+# Cross-platform release work
 
-- [x] Inspect the existing standalone app, scripts and tests.
-- [x] Copy sources and original assets; adapt test paths to this root.
-- [x] Add ignore rules and three-language README, MIT license and descriptions.
-- [x] Build locally and run migrated tests.
-- [x] Verify documentation links, exclusions and absence of old workspace paths.
-
-Verified on 2026-10-12: local build, Swift checks, renderer and one-shot regressions, two isolated installer tests, code signature, documentation links and Git ignore rules passed. No old workspace paths remain in tracked candidates. Runtime source and texture contents were preserved; only documentation, packaging and test paths changed.
+- [x] Inspect existing macOS host, shared renderer and distribution scripts.
+- [x] Record scope and acceptance in specs/windows-x64.md.
+- [x] Confirm the Windows hosting dependency with the user.
+- [x] Implement Windows x64 window tracking, click-through overlay, tray and appearance controls.
+- [x] Add Windows per-user installer and automated build/test workflow.
+- [x] Update all documentation for macOS local builds and Windows installer distribution, including actual verification versions.
+- [ ] Verify macOS regressions and Windows compilation/automated checks; record remaining manual coverage.
+- [ ] Push to GitHub and check the remote commit and workflow results.

@@ -1,66 +1,66 @@
-曦光 · Codex 全窗口动画浮层 v1.2.0
+Codex Aura 1.3.0 — quick help / 使用说明 / 使い方
 
-实时调色
-菜单栏太阳图标 →「调色控制面板…」。首次升级会自动显示面板，不抢输入焦点。
-四个滑块拖动时实时生效；也可点击右侧数字框输入数值，按回车或离开输入框应用。
-  实际不透明度：0–100%，每格 1%；20 就是最终 20%，不再有隐藏的增强倍率。
-  饱和度：0–2 倍，每格 0.01。
-  对比度：0.5–2 倍，每格 0.01。
-  亮度：0.2–1.5 倍，每格 0.01。
-当前默认值：20%、1.30、1.10、0.70。「恢复默认」回到这组值。
-改动立即应用，不重播动画；自动保存，退出再打开仍保留。关闭面板后浮层继续运行。
-调整期间浮层保持显示；只有控制面板接收输入，动画浮层仍然鼠标穿透。
-原「基础不透明度／浅色背景增强」菜单已合并为直接控制，旧设置会迁移成相同显示效果。
+English
+macOS: source-only. Install Xcode Command Line Tools, run ./build.sh, then
+open 'Codex Aura.app'. The build uses a local ad-hoc signature; no Developer ID
+or paid Apple developer account is needed. No Mac ZIP/DMG is distributed.
+Verified locally: macOS 26.5.1 (25F80), arm64, Swift 6.3.2; target desktop app
+26.1007.30912 (20156), bundle ID com.openai.codex. Intel is unverified.
+Windows: Windows 11 x64 installer only. Requires WebView2 Runtime; .NET runtime
+is bundled. Setup prompts for the Microsoft download page if WebView2 is missing.
+The current installer is unsigned. Real Codex.exe interaction remains unverified;
+see docs/verification.md for build, automated native and installer test results.
 
-安装与启动
-1. 双击「安装并启动.command」。安装到 ~/Applications/Codex Aura.app，无需管理员权限。
-2. 回到 Codex（目标 bundle ID 为 com.openai.codex，显示名称因版本而异）。浮层覆盖前台窗口全部区域。
-3. 菜单栏太阳图标可隐藏、重播、打开调色面板或退出。
-4. Ctrl + Option + Command + G 隐藏/显示（快捷键未被其他程序占用时）。
-5. 若要以后登录自动启动，单独双击「开启登录自启.command」。默认不新增自启。
+Open the sun menu/tray icon → 调色控制面板… / Appearance… to adjust appearance.
+Defaults: actual opacity 20%, saturation 1.30, contrast 1.10, brightness 0.70.
+Changes save automatically. Intro runs once; Replay restarts it. Blink/hair motion
+continues, pauses when hidden, and respects the OS reduced-motion setting.
+Toggle: macOS Ctrl+Option+Command+G; Windows Ctrl+Alt+G (if available).
+Quit from the menu/tray. Animation follows foreground state, not model progress.
 
-动画行为
-每次启动只播放一次「线稿 → 上色」，完成后保持彩色，持续眨眼、摆发。
-切换应用、隐藏/显示、调整颜色都不会重播；只有重新启动或「重播开场」才重播。
-开场有短暂亮度增强；手动调整任一参数后立即按面板百分比显示。完成开场后始终按所选实际不透明度显示。
-鼠标穿透、不抢焦点；其他应用位于前台、关闭/最小化 Codex 或手动隐藏后停止绘制。
-最多约 30 帧/秒、1 倍画布分辨率；系统「减少动态效果」开启时显示静态人物。
-根据应用前台状态播放，不读取聊天内容、不判断模型任务进度。ChatGPT/Codex 共用应用的其他页面也会显示。
-全窗口动画仍有视觉遮挡，可降低实际不透明度。无需 API Key、辅助功能或录屏授权，不发网络请求。
+macOS uninstall: python3 manage.py uninstall, or 卸载.command.
+Manual: quit, unload optional startup with:
+  launchctl bootout gui/$(id -u)/local.codex.aura
+Then remove the app (normally ~/Applications/Codex Aura.app),
+~/Library/LaunchAgents/local.codex.aura.plist, and
+~/Library/Application Support/Codex Aura.
+Windows uninstall: Settings → Apps → Installed apps → Codex Aura → Uninstall.
+The uninstaller removes the app and shortcuts and offers to delete data.
+Silent uninstall preserves data. After quitting, data can be removed manually at
+%LOCALAPPDATA%\Codex Aura. Do not remove shared WebView2 Runtime.
 
-卸载：脚本方式
-双击本包「卸载.command」，停止浮层并删除以下三个自有路径，保留 Codex 和本源码包：
-  ~/Applications/Codex Aura.app
-  ~/Library/LaunchAgents/local.codex.aura.plist
-  ~/Library/Application Support/Codex Aura
+简体中文
+macOS 只提供源码：安装 Xcode Command Line Tools，执行 ./build.sh，打开生成的
+Codex Aura.app。自动使用 ad-hoc 本地临时签名，无需付费开发者账号或 Developer ID。
+不分发 Mac ZIP/DMG。已验证 macOS 26.5.1（25F80）、arm64、Swift 6.3.2，目标应用
+26.1007.30912（20156），bundle ID com.openai.codex；Intel 未验证。
+Windows 只提供 Windows 11 x64 安装器，已包含 .NET 运行时；需要 WebView2 Runtime。
+缺少 WebView2 时提示打开微软下载页，安装后重试。安装器尚未正式签名。
+真实 Codex.exe 窗口交互尚未验证，构建及自动测试记录见 docs/verification.md。
+通过太阳菜单/托盘的调色面板调整四个参数，默认 20%、1.30、1.10、0.70，自动保存。
+每次启动只播放一次开场，之后持续眨眼摆发，隐藏时暂停。动画不表示模型进度。
+macOS 卸载可执行 python3 manage.py uninstall 或 卸载.command；手动路径见上方。
+Windows 从系统“已安装的应用”卸载，可选清理数据。静默卸载保留数据；退出后可手动
+删除 %LOCALAPPDATA%\Codex Aura。保留其他应用共享的 WebView2 Runtime。
 
-手动卸载：无需脚本
-1. 菜单栏太阳图标 →「退出曦光浮层」。
-2. Finder → 前往 → 前往文件夹，输入 ~/Library/LaunchAgents/，将 local.codex.aura.plist 移到废纸篓（没有则跳过）。
-3. 前往 ~/Applications/，将 Codex Aura.app 移到废纸篓。
-4. 前往 ~/Library/Application Support/，将 Codex Aura 文件夹移到废纸篓（没有则跳过）。
-5. 若启用过自启，注销再登录清除本次 launchd 注册，或在终端执行：
-   launchctl bootout gui/$(id -u)/local.codex.aura
-源码包是备份，不需要时可自行移到废纸篓。
+日本語
+macOS はソースのみ提供します。Xcode Command Line Tools を導入し、./build.sh を
+実行して生成したアプリを開きます。ローカル ad-hoc 署名のため、有料開発者アカウントや
+Developer ID は不要です。Mac ZIP/DMG は提供しません。検証環境は macOS 26.5.1、
+arm64、Swift 6.3.2、対象アプリ 26.1007.30912（20156）です。Intel は未検証です。
+Windows は Windows 11 x64 インストーラーのみ。.NET ランタイムは同梱しています。
+WebView2 Runtime がない場合は Microsoft のダウンロードページを案内します。
+インストーラーは未署名で、実際の Codex.exe 操作は未検証です。自動テストの範囲と
+結果は docs/verification.md を参照してください。
+太陽メニュー／トレイから色調整パネルを開きます。初期値は 20%、1.30、1.10、0.70。
+自動保存され、イントロは起動時に一度再生します。非表示で停止し、モデルの進捗は示しません。
+macOS は python3 manage.py uninstall または 卸载.command で削除できます。
+Windows は「インストールされているアプリ」から削除し、設定データの削除も選択できます。
+サイレント削除ではデータを保持します。終了後、%LOCALAPPDATA%\Codex Aura を
+手動削除することもできます。共有の WebView2 Runtime は削除しないでください。
 
-源码
-source/main.swift：原生浮层、菜单、窗口跟随、控制桥接。
-source/ControlsWindow.swift：四参数原生面板。
-source/AppearanceSettings.swift：保存值、范围与旧设置迁移。
-web/overlay.js：一次性开场、实时调色、节能调度。
-web/character.js、web/assets/：人物纹理、眨眼、发丝形变。
-原创素材说明见 web/CREDITS.html、web/PROMPTS.txt。
-build.sh 用本机 Xcode/Swift 构建、ad-hoc 签名；按当前机器架构构建，未做 Apple 公证。
-manage.py 与 .command：安装、自启和卸载。无需 npm、第三方运行库或 HTTP 服务器。
-
-验证与范围
-自动检查涵盖旧设置迁移、参数范围、保存读取、四参数实时桥接、不重播开场、暂停恢复、减少动态效果和安装卸载。
-原生窗口跟随、纹理渲染已在本机检查。原生全屏、多显示器实际切换仍未代操作验证；Codex 自身 UI 不在自动化允许范围内。
-
-仓库文档与许可证
-English: README.md
-简体中文: README.zh-CN.md
-日本語: README.ja.md
-Copyright (c) 2026 pikad520. MIT License，见同目录 LICENSE。
-LICENSE.zh-CN.md 与 LICENSE.ja.md 为参考译本，以英文 LICENSE 为准。
-当前应用界面为中文；Codex Aura 是独立非官方伴随应用。
+Full documentation / 完整文档 / 詳細:
+README.md · README.zh-CN.md · README.ja.md
+Copyright (c) 2026 pikad520. MIT License (LICENSE).
+LICENSE.zh-CN.md and LICENSE.ja.md are reference translations; English governs.
+Dependencies retain their own licenses. Independent, unofficial companion.

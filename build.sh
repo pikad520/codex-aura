@@ -9,6 +9,8 @@ xcrun swiftc -O -target "$(uname -m)-apple-macosx12.0" \
   -framework AppKit -framework WebKit -framework Carbon \
   -o "$app_dir/Contents/MacOS/CodexAura"
 cp -R "$package_dir/web/." "$app_dir/Contents/Resources/Web/"
+mkdir -p "$app_dir/Contents/Resources/docs"
+cp "$package_dir/docs/"*.md "$app_dir/Contents/Resources/docs/"
 cp "$package_dir/README.txt" "$app_dir/Contents/Resources/README.txt"
 # Keep documentation and license notices with redistributable app bundles.
 for document in README.md README.zh-CN.md README.ja.md LICENSE LICENSE.zh-CN.md LICENSE.ja.md; do
@@ -23,8 +25,8 @@ cat > "$app_dir/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>曦光浮层</string>
 <key>CFBundleExecutable</key><string>CodexAura</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleVersion</key><string>6</string>
-<key>CFBundleShortVersionString</key><string>1.2.0</string>
+<key>CFBundleVersion</key><string>7</string>
+<key>CFBundleShortVersionString</key><string>1.3.0</string>
 <key>LSMinimumSystemVersion</key><string>12.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>

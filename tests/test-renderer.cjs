@@ -13,7 +13,10 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   let callbacks = new Map(), next = 0, reduced = {matches:false,addEventListener(_,fn){this.changed=fn;}};
   const context2d = new Proxy({}, {get(target,key){return target[key] || (()=>{});}});
   const canvas = {dataset:{},style:{},getContext(){return context2d;}};
-  const sandbox = {console, innerWidth:1280, innerHeight:800, matchMedia:()=>reduced,
+  const macMessages = [], windowsMessages = [];
+  const sandbox = {console,
+    webkit:{messageHandlers:{aura:{postMessage:value=>macMessages.push(value)}}},
+    chrome:{webview:{postMessage:value=>windowsMessages.push(value)}}, innerWidth:1280, innerHeight:800, matchMedia:()=>reduced,
     document:{getElementById:()=>canvas,createElement:()=>({getContext:()=>context2d})},
     Image:class {set src(v){queueMicrotask(()=>this.onload());}},
     addEventListener(){}, cancelAnimationFrame(id){callbacks.delete(id);},
@@ -23,6 +26,8 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   vm.runInNewContext(fs.readFileSync(require.resolve('../web/overlay.js'),'utf8'),vm.createContext(sandbox));
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(sandbox.aura.status().ready,true);
+  assert.equal(macMessages[0].status,'ready');
+  assert.equal(windowsMessages[0].status,'ready');
   assert.equal(callbacks.size,0,'no animation before native activation');
   sandbox.aura.setActive(true);
   const before = sandbox.aura.status().frames;

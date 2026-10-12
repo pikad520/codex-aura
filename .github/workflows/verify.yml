@@ -1,0 +1,73 @@
+name: Verify and build Windows installer
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify local macOS build
+        run: ./scripts/test.sh
+      # macOS is source-only: never upload .app, ZIP or DMG artifacts.
+  windows-x64:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.401'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record validation environment
+        shell: pwsh
+        run: |
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber, OsArchitecture
+          dotnet --version
+          node --version
+      - name: Run shared and Windows policy tests
+        shell: pwsh
+        run: |
+          node tests/test-renderer.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/test-one-shot.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project windows/CoreTests -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build self-contained x64 installer
+        shell: pwsh
+        run: ./windows/build.ps1 -Installer
+      - name: Verify native overlay against an isolated fixture
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP 'aura-smoke'
+          $process = Start-Process windows/publish/CodexAura.exe -ArgumentList @('--smoke-test', "`"$output`"") -PassThru
+          if (-not $process.WaitForExit(90000)) { $process.Kill(); throw 'Native smoke test timed out.' }
+          if ($process.ExitCode -ne 0) {
+            Get-Content "$output/failure.txt" -ErrorAction SilentlyContinue
+            throw "Native smoke test failed: $($process.ExitCode)"
+          }
+          Get-Content "$output/result.json"
+      - name: Save native test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-test-evidence
+          path: ${{ runner.temp }}/aura-smoke/*.*
+          if-no-files-found: ignore
+      - name: Verify installer and uninstall
+        shell: pwsh
+        run: ./windows/test-installer.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CodexAura-windows-x64-installer
+          path: windows/installer-output/*
+          if-no-files-found: error
