@@ -9,7 +9,11 @@ Recorded: 2026-10-12. Application version: 1.3.0.
 | Local target desktop app | 26.1007.30912 (20156), `com.openai.codex` | Previous macOS overlay/control-panel verification; no new Codex UI automation |
 | Local test tools | Node.js 22.22.3; Python 3.13.9 | Shared renderer and isolated macOS installer tests |
 | Windows cross-compilation | .NET SDK 10.0.401; WebView2 SDK 1.0.4258.31; win-x64 | Release build with zero warnings/errors; self-contained publish; settings/window-policy tests passed |
-| Windows CI | Pending first workflow run | CI results will be recorded after pushing the workflow |
+| Windows CI | Windows Server 2025 Datacenter, build 26100, x64; .NET SDK 10.0.401 / runtime 10.0.12; WebView2 Runtime 153.0.4234.48; Inno Setup 6.7.1 | [Passed build, native animation/reduced-motion fixture and installer/uninstaller checks](https://github.com/pikad520/codex-aura/actions/runs/38230748673) |
+
+The native fixture produced 37 frames and an advancing animation clock in the sampled motion-enabled state; all four appearance values reached the actual renderer. The test also confirmed a stopped clock while hidden and while reduced motion was enabled, translucent WPF composition, nonactivating/click-through window styles and matching physical bounds. The captured image had 569,698 rendered translucent pixels. This verifies native composition against our own test window, not actual input pass-through on Codex.
+
+The project targets `net10.0-windows10.0.22000.0` so the Windows SDK projection assemblies needed by WebView2 composition are included. .NET SDK 10.0.401 is pinned by `global.json`. Subsequent checks and installer builds are in [Actions](https://github.com/pikad520/codex-aura/actions/workflows/verify.yml).
 
 The minimum deployment target is not proof that every OS version is tested. Windows targets Windows 11 x64 (build 22000 or later). No Windows x86, ARM64, macOS Intel or Linux validation is claimed.
 

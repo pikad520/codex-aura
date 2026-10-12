@@ -6,5 +6,6 @@
 - [x] Implement Windows x64 window tracking, click-through overlay, tray and appearance controls.
 - [x] Add Windows per-user installer and automated build/test workflow.
 - [x] Update all documentation for macOS local builds and Windows installer distribution, including actual verification versions.
-- [ ] Verify macOS regressions and Windows compilation/automated checks; record remaining manual coverage.
-- [ ] Push to GitHub and check the remote commit and workflow results.
+- [x] Verify macOS regressions, Windows compilation, native fixture and installer/uninstaller checks; record remaining manual coverage.
+- [x] Push to GitHub and check workflow results; native animation/installer run: 38230748673.
+- [x] Verify explicit native motion/reduced-motion coverage and retrieve the Windows installer; SHA-256 verified.
