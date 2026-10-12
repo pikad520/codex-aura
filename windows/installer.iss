@@ -1,4 +1,4 @@
-#define AppVersion "1.4.0"
+#define AppVersion "1.5.0"
 [Setup]
 AppId={{C148D59F-0C96-47F4-8DB5-D67401ED316A}
 AppName=Codex Aura
@@ -23,22 +23,32 @@ WizardStyle=modern
 CloseApplications=yes
 RestartApplications=no
 Uninstallable=yes
+LanguageDetectionMethod=uilanguage
+ShowLanguageDialog=yes
+UsePreviousLanguage=yes
+
+[Languages]
+Name: "en"; MessagesFile: "compiler:Default.isl"
+Name: "zh"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"
+
+#include "obj\LocalizedMessages.iss"
 
 [Tasks]
-Name: "startup"; Description: "Start Codex Aura when I sign in"; Flags: unchecked
-Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
+Name: "startup"; Description: "{cm:installStartup}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:installDesktop}"; Flags: unchecked
 
 [Files]
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Codex Aura"; Filename: "{app}\CodexAura.exe"
-Name: "{group}\Uninstall Codex Aura"; Filename: "{uninstallexe}"
+Name: "{group}\{cm:installUninstall}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Codex Aura"; Filename: "{app}\CodexAura.exe"; Tasks: desktopicon
 Name: "{userstartup}\Codex Aura"; Filename: "{app}\CodexAura.exe"; Tasks: startup
 
 [Run]
-Filename: "{app}\CodexAura.exe"; Description: "Launch Codex Aura"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\CodexAura.exe"; Description: "{cm:installLaunch}"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 Filename: "{app}\CodexAura.exe"; Parameters: "--quit"; Flags: runhidden waituntilterminated; RunOnceId: "StopCodexAura"
@@ -61,11 +71,12 @@ function InitializeSetup: Boolean;
 var
   ErrorCode: Integer;
 begin
+  Log('Codex Aura setup language: ' + ActiveLanguage);
   Result := HasWebView2;
   if not Result then begin
     if WizardSilent then
-      Log('Microsoft Edge WebView2 Runtime is required. Install it before running setup.')
-    else if MsgBox('Microsoft Edge WebView2 Runtime is required. Install it from Microsoft, then run this installer again. Open the download page now?',
+      Log(CustomMessage('installWebView'))
+    else if MsgBox(CustomMessage('installWebView'),
       mbInformation, MB_YESNO) = IDYES then
       ShellExec('open', 'https://developer.microsoft.com/microsoft-edge/webview2/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
@@ -76,7 +87,7 @@ begin
   if CurUninstallStep = usPostUninstall then begin
     // Preferences and browser cache are separate from the installation and kept by default.
     if not UninstallSilent then
-      if MsgBox('Also remove Codex Aura appearance settings and browser cache?', mbConfirmation, MB_YESNO) = IDYES then
+      if MsgBox(CustomMessage('installRemoveData'), mbConfirmation, MB_YESNO) = IDYES then
         DelTree(ExpandConstant('{localappdata}\Codex Aura'), True, True, True);
   end;
 end;

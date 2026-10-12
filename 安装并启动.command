@@ -2,5 +2,5 @@
 set -eu
 package_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
 /usr/bin/python3 "$package_dir/manage.py" install
-printf "\n按回车关闭此窗口…"
+/usr/bin/python3 "$package_dir/scripts/localization.py" pressReturn
 read -r response

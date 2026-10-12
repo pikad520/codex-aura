@@ -3,6 +3,18 @@ import Foundation
     static func main() throws {
         func load(_ text:String) -> AppearanceSettings { AppearanceSettings.load(text.data(using:.utf8)) }
         assert(AppearanceSettings.load(nil) == .defaults)
+        assert(AppearanceSettings.defaults.language == "system")
+        for (system, expected) in [("en-US","en"),("zh-Hans-CN","zh-CN"),("zh_TW","zh-CN"),("ja-JP","ja"),("fr-FR","en"),("","en")] {
+            assert(Localization.resolve("system", system:system) == expected)
+        }
+        for language in Localization.choices {
+            let saved = load("{\"version\":2,\"language\":\"\(language)\",\"character\":\"blue-hime\",\"opacity\":0.15}")
+            assert(saved.language == language && saved.character == "blue-hime" && saved.opacity == 0.15)
+            assert(load(saved.json) == saved)
+        }
+        assert(Localization.resolve("ja", system:"en-US") == "ja", "Explicit choice overrides OS language")
+        assert(load("{\"version\":2}").language == "system", "Upgrade follows system without losing other settings")
+        assert(load("{\"version\":2,\"language\":\"invalid\"}").language == "system")
         let legacy = load("{\"opacity\":0.18,\"lightBackground\":true}")
         assert(abs(legacy.opacity-0.20)<0.00001 && legacy.saturation == 1.3)
         let dark = load("{\"opacity\":0.25,\"lightBackground\":false}")

@@ -11,11 +11,11 @@
 | 環境 | 配布方法 | 状態 |
 | --- | --- | --- |
 | macOS | ソースからローカルビルド・署名 | Apple Silicon で検証済み、Intel は未検証 |
-| Windows 11 x64 | `CodexAura-1.4.0-windows-x64-setup.exe` | プレビュー版。[検証記録](docs/verification.md)参照 |
+| Windows 11 x64 | `CodexAura-1.5.0-windows-x64-setup.exe` | プレビュー版。[検証記録](docs/verification.md)参照 |
 
-2 人目のキャラクターはソースと 1.4.0 Actions インストーラーに含まれます。以前の Release インストーラーには含まれません。
+1.5.0 は即時の言語切り替えと 2 人のキャラクターを含みます。新しいプレビュー版は [Releases](https://github.com/pikad520/codex-aura/releases) から取得できます。
 
-macOS の ZIP/DMG、Windows のポータブル ZIP、x86・ARM64 インストーラーは提供しません。macOS の UI は中国語、Windows の操作 UI は英語です。ドキュメントは 3 言語で提供します。
+macOS の ZIP/DMG、Windows のポータブル ZIP、x86・ARM64 インストーラーは提供しません。両 OS のネイティブ UI、Windows インストーラー、ドキュメントは英語・簡体中国語・日本語に対応しています。
 
 ## macOS のローカルビルドと署名
 
@@ -58,6 +58,10 @@ Finder 用の `安装并启动.command` と `开启登录自启.command` は `/u
 
 macOS のメニューバー、または Windows の通知領域の太陽アイコンから **调色控制面板… / Appearance…** を選びます。スライダーと数値入力は即時反映・自動保存されます。macOS では初回起動時にパネルが表示され、Windows ではトレイメニューまたはアイコンのダブルクリックで開きます。
 
+**言語**欄では **システムに従う / English / 简体中文 / 日本語** を選べます。新規インストールや言語設定のない旧バージョンでは OS の優先 UI 言語を使用します。中国語系は簡体中国語、日本語は日本語、それ以外の未対応言語は英語になります。手動選択はパネルとメニューに即座に反映され、自動保存されます。「システムに従う」に戻すと自動選択になり、OS の言語変更は次回起動時に読み取ります。言語の切り替えや初期値へのリセットで、キャラクターやイントロの進行は変わりません。数値書式はシステムの地域設定に従い、ヘルプは対応する README を開きます。
+
+Windows セットアップは Inno Setup の OS 言語判定を使い、手動選択も可能です。更新時は前回のインストーラー言語を引き継ぎます。アプリの言語設定とは独立しており、アプリは初期状態で「システムに従う」を使い、更新時は保存済みの選択を保持します。
+
 キャラクター欄で **Golden · Waves**（従来の金髪）と **Blue · Hime cut**（青髪の姫カット）を切り替えられます。青髪のキャラクターは凛とした表情に柔らかな微笑みを添えています。選択は保存され、再起動後も維持されます。切り替えてもイントロの進行と 4 つの外観設定を保持します。初期値に戻す操作もキャラクターは変更しません。従来の 4 枚は変更せず、青髪は新しい 2 枚から読み込み時に線画を生成します。
 
 | 設定 | 初期値 | 範囲 |
@@ -92,7 +96,7 @@ macOS のメニューバー、または Windows の通知領域の太陽アイ�
 dotnet run --project windows/CoreTests -c Release
 ```
 
-Windows に .NET SDK 10.0.401 と Inno Setup 6 を導入して実行します。
+Windows に .NET SDK 10.0.401 と Inno Setup 6.5+ を導入して実行します。
 
 ```powershell
 ./windows/build.ps1 -Installer
@@ -101,6 +105,10 @@ Windows に .NET SDK 10.0.401 と Inno Setup 6 を導入して実行します。
 .NET ランタイムを含む x64 アプリと、`windows/installer-output/` のインストーラーを生成します。WebView2 SDK 1.0.4258.31 は `packages.lock.json` で固定しています。CI では macOS 回帰、Windows テスト、専用ウィンドウでのネイティブ描画、インストール・削除を検証し、Windows インストーラーのみ配布用成果物としてアップロードします。実際のバージョン、結果、未完了の手動確認は[検証記録](docs/verification.md)を参照してください。
 
 `source/` が macOS ホスト、`windows/CodexAura/` が Windows ホスト、`web/` が共通アニメーションです。[仕様](specs/windows-x64.md)と [3 言語の紹介文](DESCRIPTION.md)も参照できます。
+
+## ローカライズ開発
+
+`web/locales.json` は両ホスト、ローカル管理スクリプト、Windows の独自セットアップメッセージで共用します。3 言語のキーを揃え、ローカルビルド後に `python3 tests/test-localization.py` で確認してください。Swift と .NET のテストは言語判定と設定移行を、Windows CI はネイティブの言語選択と 3 言語のインストールを検証します。Inno Setup 6.5+ の公式中国語・日本語リソースを使用します。[要件](specs/localization.md)も参照してください。
 
 ## 素材とライセンス
 

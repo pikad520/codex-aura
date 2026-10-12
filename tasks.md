@@ -1,5 +1,14 @@
 # Cross-platform release work
 
+## Localization and 1.5 release
+
+- [x] Add shared en/zh-CN/ja catalog, locale resolution and persistent language preference.
+- [x] Localize both native hosts and add live language controls without changing animation state.
+- [x] Localize installer and local management messages; keep system-language defaults.
+- [x] Verify local locale migration, translated macOS controls and builds.
+- [ ] Verify Windows native controls and all installer languages in CI.
+- [ ] Update multilingual documentation, push, verify CI and publish the new release.
+
 ## Second character
 
 - [x] Generate and inspect blue hime-cut open/closed-eye artwork; preserve original textures.

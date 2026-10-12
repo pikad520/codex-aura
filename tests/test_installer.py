@@ -5,6 +5,8 @@ import tempfile
 import unittest
 
 PACKAGE = Path(__file__).resolve().parents[1]
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 spec = importlib.util.spec_from_file_location('manage', PACKAGE / 'manage.py')
 manage = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(manage)

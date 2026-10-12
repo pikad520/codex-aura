@@ -8,8 +8,10 @@ import plistlib
 import shutil
 import subprocess
 import time
+from scripts.localization import translator
 
 IDENTIFIER = 'local.codex.aura'
+T = translator(Path.home())
 
 def paths(home):
     return (home / 'Applications/Codex Aura.app',
@@ -20,10 +22,10 @@ def ensure_owned_app(app):
     if not app.exists() and not app.is_symlink():
         return
     if app.is_symlink():
-        raise RuntimeError(f'拒绝修改符号链接：{app}')
+        raise RuntimeError(f'{T("manageSymlink")} {app}')
     with (app / 'Contents/Info.plist').open('rb') as source:
         if plistlib.load(source).get('CFBundleIdentifier') != IDENTIFIER:
-            raise RuntimeError(f'此目录不属于曦光浮层，已停止：{app}')
+            raise RuntimeError(f'{T("manageForeign")} {app}')
 
 def remove_owned(path):
     if path.is_symlink() or path.is_file():
@@ -49,7 +51,7 @@ def manage(action, home, package, live=True, launch=True):
         source = package / 'Codex Aura.app'
         ensure_owned_app(source)
         if not source.is_dir():
-            raise RuntimeError('缺少 Codex Aura.app，请先运行 build.sh。')
+            raise RuntimeError(T('manageMissing'))
         if live:
             stop(app, agent)
         remove_owned(app)
@@ -60,10 +62,10 @@ def manage(action, home, package, live=True, launch=True):
         # Preserve and reload an existing explicit opt-in after updates.
         if live and agent.exists():
             run(['/bin/launchctl', 'bootstrap', f'gui/{os.getuid()}', str(agent)])
-        return f'已安装：{app}\n未新增登录自启。菜单栏太阳图标可控制浮层。'
+        return f'{T("manageInstalled")} {app}\n{T("manageNoStartup")}'
     if action == 'enable-login':
         if not app.exists():
-            raise RuntimeError('请先运行安装并启动.command。')
+            raise RuntimeError(T('manageInstallFirst'))
         payload = {'Label': IDENTIFIER, 'ProgramArguments': [str(app / 'Contents/MacOS/CodexAura')],
                    'RunAtLoad': True, 'ProcessType': 'Interactive'}
         agent.parent.mkdir(parents=True, exist_ok=True)
@@ -72,22 +74,22 @@ def manage(action, home, package, live=True, launch=True):
         if live:
             run(['/bin/launchctl', 'bootout', f'gui/{os.getuid()}/{IDENTIFIER}'], required=False)
             run(['/bin/launchctl', 'bootstrap', f'gui/{os.getuid()}', str(agent)])
-        return '已开启登录自启；Codex 不在前台时浮层隐藏、动画暂停。'
+        return T('manageStartup')
     if action == 'uninstall':
         if live:
             stop(app, agent)
         for owned in (agent, app, data):
             remove_owned(owned)
-        return '已移除曦光浮层、登录自启与设置。Codex 和当前源码包未修改。'
+        return T('manageRemoved')
     raise ValueError(action)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=T("manageDescription"))
     parser.add_argument('action', choices=['install', 'enable-login', 'uninstall'])
-    parser.add_argument('--no-launch', action='store_true')
+    parser.add_argument('--no-launch', action='store_true', help=T('manageNoLaunch'))
     args = parser.parse_args()
     try:
         print(manage(args.action, Path.home(), Path(__file__).resolve().parent, launch=not args.no_launch))
     except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
-        print(f'操作未完成：{error}')
+        print(f'{T("manageFailed")} {error}')
         raise SystemExit(1)

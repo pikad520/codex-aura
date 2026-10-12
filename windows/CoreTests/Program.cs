@@ -2,6 +2,19 @@ using CodexAura;
 
 static void Check(bool condition, string name) { if (!condition) throw new Exception(name); }
 var defaults = new Appearance();
+Check(defaults.Language == "system", "First launch follows system");
+foreach (var (system, expected) in new[] { ("en-US","en"), ("zh-Hans-CN","zh-CN"), ("zh_TW","zh-CN"), ("ja-JP","ja"), ("fr-FR","en"), ("","en") })
+    Check(Localization.Resolve("system", system) == expected, "OS language mapping: " + system);
+Check(Localization.Resolve("ja", "en-US") == "ja", "Explicit language wins");
+Check(Appearance.Parse("{\"language\":\"bad\"}").Language == "system", "Invalid language follows system");
+Check(Appearance.Parse("{\"language\":null}").Language == "system", "Null language follows system");
+foreach (var language in Localization.Choices) {
+    var selected = new Appearance(.15, 1.15, 2, .8, "blue-hime", language);
+    Check(Appearance.Parse(selected.ToJson()) == selected, "Language round trip preserves appearance and character");
+}
+Check(new Localization("en")["language"] == "Language", "Bundled English catalog");
+Check(new Localization("zh-CN")["language"] == "语言", "Bundled Chinese catalog");
+Check(new Localization("ja")["language"] == "言語", "Bundled Japanese catalog");
 Check(Appearance.Parse("not json") == defaults, "Corrupt settings use defaults");
 Check(Appearance.Parse("{}") == defaults, "Missing values use defaults");
 Check(Appearance.Parse("null") == defaults, "Null settings use defaults");

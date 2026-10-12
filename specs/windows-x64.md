@@ -2,7 +2,7 @@
 
 ## Scope
 
-Keep the macOS AppKit host and shared character animation. Add a Windows 11 x64 (.NET 10/WPF + WebView2CompositionControl) host with a transparent, nonactivating, click-through window that follows the foreground Codex desktop window. Preserve one-shot introduction, ongoing blink/hair motion, pause when hidden, Reduce Motion and the four appearance defaults (20%, 1.30, 1.10, 0.70). Provide native appearance controls and a tray menu. Settings belong only to this app.
+Keep the macOS AppKit host and shared character animation. Add a Windows 11 x64 (.NET 10/WPF + WebView2CompositionControl) host with a transparent, nonactivating, click-through window that follows the foreground Codex desktop window. Preserve one-shot introduction, ongoing blink/hair motion, pause when hidden, Reduce Motion and the four appearance defaults (20%, 1.30, 1.10, 0.70). Provide native appearance controls and a tray menu. Settings belong only to this app. Both native hosts and the installer support English, Simplified Chinese and Japanese, with system-language defaults and a persistent in-app language selector; see [localization.md](localization.md).
 
 Distribution: macOS is source-only, compiled and ad-hoc signed locally; no macOS ZIP or DMG releases. Windows provides an x64 installer only; no x86 or ARM64 support. The installer must be per-user, include an uninstaller, leave Codex untouched, and state external runtime requirements. Login startup is optional, never enabled by default. Do not claim to track model activity or chat content.
 

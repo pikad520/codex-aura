@@ -4,7 +4,7 @@ package_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
 app_dir="$package_dir/Codex Aura.app"
 mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources/Web"
 xcrun swiftc -O -target "$(uname -m)-apple-macosx12.0" \
-  "$package_dir/source/WindowPolicy.swift" "$package_dir/source/AppearanceSettings.swift" \
+  "$package_dir/source/Localization.swift" "$package_dir/source/WindowPolicy.swift" "$package_dir/source/AppearanceSettings.swift" \
   "$package_dir/source/ControlsWindow.swift" "$package_dir/source/main.swift" \
   -framework AppKit -framework WebKit -framework Carbon \
   -o "$app_dir/Contents/MacOS/CodexAura"
@@ -25,15 +25,17 @@ cat > "$app_dir/Contents/Info.plist" <<'PLIST'
 <plist version="1.0"><dict>
 <key>CFBundleIdentifier</key><string>local.codex.aura</string>
 <key>CFBundleName</key><string>Codex Aura</string>
-<key>CFBundleDisplayName</key><string>曦光浮层</string>
+<key>CFBundleDisplayName</key><string>Codex Aura</string>
 <key>CFBundleExecutable</key><string>CodexAura</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleVersion</key><string>8</string>
-<key>CFBundleShortVersionString</key><string>1.4.0</string>
+<key>CFBundleVersion</key><string>9</string>
+<key>CFBundleShortVersionString</key><string>1.5.0</string>
+<key>CFBundleDevelopmentRegion</key><string>en</string>
+<key>CFBundleLocalizations</key><array><string>en</string><string>zh_CN</string><string>ja</string></array>
 <key>LSMinimumSystemVersion</key><string>12.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
 codesign --force --sign - "$app_dir"
-printf '已构建：%s\n' "$app_dir"
+printf 'Built / 已构建 / ビルド完了: %s\n' "$app_dir"

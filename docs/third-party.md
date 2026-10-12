@@ -9,3 +9,5 @@ Windows uses Microsoft.Web.WebView2 SDK 1.0.4258.31 and a self-contained .NET 10
 日本語：本プロジェクトの MIT ライセンスは依存コンポーネントのライセンスを置き換えません。Windows は `Docs/ThirdParty/` に WebView2 SDK、.NET と Windows Desktop ランタイムの通知を同梱します。WebView2 Evergreen Runtime は Microsoft から別途インストールし、本アプリと一緒には削除しません。
 
 Sources: [WebView2 SDK package](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4258.31), [.NET](https://github.com/dotnet/runtime), [WPF](https://github.com/dotnet/wpf), [Inno Setup](https://jrsoftware.org/isinfo.php), [Windows SDK terms](https://aka.ms/WinSDKLicenseURL).
+
+The installer uses the official Chinese (Simplified) and Japanese messages bundled with Inno Setup 6.5+; these are compiled with the installer and are not copied into this repository. Project-specific prompts come from `web/locales.json`. See [Inno Setup translations](https://jrsoftware.org/files/istrans/) and [UI-language detection](https://jrsoftware.org/ishelp/topic_setup_languagedetectionmethod.htm).

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -22,8 +23,10 @@ internal static class Program
             if (EventWaitHandle.TryOpenExisting(QuitEvent, out var quit)) { using (quit) quit.Set(); }
             return;
         }
+        var initial = Appearance.Load(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Codex Aura", "settings.json"));
+        var l = new Localization(initial.Language);
         if (RuntimeInformation.OSArchitecture != Architecture.X64 || !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
-        { MessageBox.Show("This build requires Windows 11 x64 or later.", "Codex Aura"); return; }
+        { MessageBox.Show(l["needWindows"], "Codex Aura"); return; }
         if (args.Length == 2 && args[0] == "--smoke-test")
         {
             var testApp = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
@@ -36,7 +39,7 @@ internal static class Program
         try { CoreWebView2Environment.GetAvailableBrowserVersionString(); }
         catch (WebView2RuntimeNotFoundException)
         {
-            if (MessageBox.Show("Microsoft Edge WebView2 Runtime is required. Open Microsoft's download page?",
+            if (MessageBox.Show(l["needWebView"],
                 "Codex Aura", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
                 Process.Start(new ProcessStartInfo("https://developer.microsoft.com/microsoft-edge/webview2/") { UseShellExecute = true });
             return;
@@ -55,6 +58,8 @@ internal static class Program
 internal sealed class Companion : IDisposable
 {
     private readonly Application application;
+    private readonly Dictionary<string, Forms.ToolStripItem> menuLabels = new();
+    private Localization L => new(appearance.Language);
     private readonly string dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Codex Aura");
     private readonly OverlayWindow overlay = new();
     private readonly Forms.NotifyIcon tray;
@@ -75,23 +80,24 @@ internal sealed class Companion : IDisposable
         this.application = application;
         appearance = Appearance.Load(SettingsPath);
         var menu = new Forms.ContextMenuStrip();
-        state = new Forms.ToolStripMenuItem("Preparing animation…") { Enabled = false };
-        toggle = new Forms.ToolStripMenuItem("Hide overlay", null, (_, _) => Toggle());
+        state = new Forms.ToolStripMenuItem(L["preparing"]) { Enabled = false };
+        toggle = new Forms.ToolStripMenuItem(L["hide"], null, (_, _) => Toggle());
         menu.Items.Add(state); menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(toggle);
-        menu.Items.Add("Replay intro", null, async (_, _) => await overlay.ScriptAsync("window.aura.replay()"));
-        menu.Items.Add("Appearance…", null, (_, _) => ShowControls());
+        menuLabels["replay"] = menu.Items.Add(L["replay"], null, async (_, _) => await overlay.ScriptAsync("window.aura.replay()"));
+        menuLabels["controls"] = menu.Items.Add(L["controls"], null, (_, _) => ShowControls());
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Help and uninstall…", null, (_, _) => Process.Start(new ProcessStartInfo(
-            Path.Combine(AppContext.BaseDirectory, "Docs", "README.txt")) { UseShellExecute = true }));
-        menu.Items.Add("Quit", null, (_, _) => application.Shutdown());
+        menuLabels["help"] = menu.Items.Add(L["help"], null, (_, _) => Process.Start(new ProcessStartInfo(
+            Path.Combine(AppContext.BaseDirectory, "Docs", L.HelpFile)) { UseShellExecute = true }));
+        menuLabels["quit"] = menu.Items.Add(L["quit"], null, (_, _) => application.Shutdown());
         tray = new Forms.NotifyIcon { Text = "Codex Aura", Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "aura.ico")),
             ContextMenuStrip = menu, Visible = true };
         tray.DoubleClick += (_, _) => ShowControls();
+        overlay.UILanguage = appearance.Language;
         overlay.ToggleRequested += Toggle;
         overlay.BecameReady += async () => { await overlay.SetAppearanceAsync(appearance); Update(); };
         overlay.Failed += message =>
         {
-            failed = true; timer.Stop(); state.Text = "Animation stopped — restart Codex Aura";
+            failed = true; timer.Stop(); state.Text = L["processStopped"];
             tray.ShowBalloonTip(8000, "Codex Aura", message, Forms.ToolTipIcon.Error);
         };
         timer.Tick += (_, _) => Update();
@@ -103,8 +109,8 @@ internal sealed class Companion : IDisposable
         try { await overlay.InitializeAsync(dataDirectory, appearance); timer.Start(); Update(); }
         catch (Exception error) when (error is COMException or InvalidOperationException or IOException or UnauthorizedAccessException)
         {
-            overlay.Hide(); failed = true; state.Text = "Could not start animation";
-            MessageBox.Show("Unable to initialize the animation. Check WebView2 Runtime and restart Codex Aura.\n\n" + error.Message,
+            overlay.Hide(); failed = true; state.Text = L["initFailed"];
+            MessageBox.Show(L["initFailed"] + "\n\n" + error.Message,
                 "Codex Aura", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
@@ -115,15 +121,22 @@ internal sealed class Companion : IDisposable
             controls = new ControlsWindow(appearance);
             controls.Changed += async value =>
             {
+                var languageChanged = appearance.Language != value.Language;
                 appearance = value; saveTimer.Stop(); saveTimer.Start();
-                await overlay.SetAppearanceAsync(value, true);
+                if (languageChanged) {
+                    overlay.UILanguage = value.Language;
+                    foreach (var item in menuLabels) item.Value.Text = L[item.Key];
+                    toggle.Text = L[enabled ? "hide" : "show"];
+                    if (failed) state.Text = L["processStopped"]; else Update();
+                }
+                else await overlay.SetAppearanceAsync(value, true);
             };
             controls.ReplayRequested += async () => await overlay.ScriptAsync("window.aura.replay()");
             controls.Closed += (_, _) => { controls = null; Update(); };
         }
         controls.Show(); controls.Activate(); Update();
     }
-    private void Toggle() { enabled = !enabled; toggle.Text = enabled ? "Hide overlay" : "Show overlay"; Update(); }
+    private void Toggle() { enabled = !enabled; toggle.Text = L[enabled ? "hide" : "show"]; Update(); }
     private async void Update()
     {
         if (updating || failed) return;
@@ -139,8 +152,7 @@ internal sealed class Companion : IDisposable
             var hasRect = Native.TryRect(target, out var rect) && Native.IsTarget(target);
             var visible = WindowPolicy.ShouldShow(overlay.Ready, enabled, targetForeground, adjusting, hasRect);
             await overlay.SetVisibleAsync(visible, rect, adjusting ? controlsHandle : 0);
-            state.Text = !overlay.Ready ? "Preparing animation…" : !enabled ? "Hidden · animation paused" :
-                visible ? "Codex foreground · animation active" : "Waiting for a Codex.exe window";
+            state.Text = L[!overlay.Ready ? "preparing" : !enabled ? "paused" : visible ? "playing" : "waiting"];
         }
         finally { updating = false; }
     }
@@ -148,7 +160,7 @@ internal sealed class Companion : IDisposable
     {
         try { appearance.Save(SettingsPath); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        { tray.ShowBalloonTip(5000, "Codex Aura", "Settings could not be saved. Check folder permissions.", Forms.ToolTipIcon.Warning); }
+        { tray.ShowBalloonTip(5000, "Codex Aura", L["saveFailed"], Forms.ToolTipIcon.Warning); }
     }
     public void Dispose()
     {

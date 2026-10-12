@@ -20,6 +20,9 @@ internal sealed class OverlayWindow : Window
     };
     private bool active;
     private bool disposed;
+    private Localization L => new(UILanguage);
+    private string language = "system";
+    internal string UILanguage { get => language; set { language = value; Title = L["overlayTitle"]; } }
     internal bool Ready { get; private set; }
     internal nint Handle { get; private set; }
     internal event Action? BecameReady;
@@ -28,7 +31,7 @@ internal sealed class OverlayWindow : Window
 
     internal OverlayWindow()
     {
-        Title = "Codex Aura overlay";
+        Title = L["overlayTitle"];
         WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
         ShowInTaskbar = false; ShowActivated = false; Focusable = false; IsHitTestVisible = false;
         ResizeMode = ResizeMode.NoResize; Width = 900; Height = 650; Opacity = 0;
@@ -72,8 +75,8 @@ internal sealed class OverlayWindow : Window
             if (!e.Request.Uri.StartsWith(Origin, StringComparison.Ordinal))
                 e.Response = environment.CreateWebResourceResponse(null, 403, "Blocked", "");
         };
-        core.ProcessFailed += (_, e) => Fail("The animation process stopped (" + e.ProcessFailedKind + "). Restart Codex Aura.");
-        core.NavigationCompleted += (_, e) => { if (!e.IsSuccess) Fail("Animation page failed to load: " + e.WebErrorStatus); };
+        core.ProcessFailed += (_, e) => Fail(L["processStopped"] + " (" + e.ProcessFailedKind + ")");
+        core.NavigationCompleted += (_, e) => { if (!e.IsSuccess) Fail(L["loadFailed"] + " (" + e.WebErrorStatus + ")"); };
         core.WebMessageReceived += (_, e) =>
         {
             if (e.Source != Origin + "index.html") return;
@@ -82,11 +85,11 @@ internal sealed class OverlayWindow : Window
                 using var message = JsonDocument.Parse(e.WebMessageAsJson);
                 if (message.RootElement.GetProperty("status").GetString() == "ready")
                 { Ready = true; BecameReady?.Invoke(); }
-                else Fail("Animation failed to load. Restart Codex Aura.");
+                else Fail(L["loadFailed"]);
             }
-            catch (JsonException) { Fail("Invalid animation status."); }
-            catch (InvalidOperationException) { Fail("Invalid animation status."); }
-            catch (System.Collections.Generic.KeyNotFoundException) { Fail("Invalid animation status."); }
+            catch (JsonException) { Fail(L["invalidStatus"]); }
+            catch (InvalidOperationException) { Fail(L["invalidStatus"]); }
+            catch (System.Collections.Generic.KeyNotFoundException) { Fail(L["invalidStatus"]); }
         };
         await core.AddScriptToExecuteOnDocumentCreatedAsync($"window.AURA_INITIAL_APPEARANCE = {(appearance ?? new()).ToJson()};");
         core.Navigate(Origin + "index.html");
@@ -100,7 +103,7 @@ internal sealed class OverlayWindow : Window
         if (!Ready || disposed) return;
         try { await browser.ExecuteScriptAsync(script); }
         catch (Exception error) when (error is InvalidOperationException or System.Runtime.InteropServices.COMException)
-        { if (!disposed) Fail("The animation could not update. Restart Codex Aura."); }
+        { if (!disposed) Fail(L["updateFailed"]); }
     }
     internal Task<string> SetMotionForTestAsync(bool reduced) => browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
         "Emulation.setEmulatedMedia", JsonSerializer.Serialize(new {

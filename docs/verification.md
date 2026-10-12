@@ -36,3 +36,11 @@ Optional reproduction, with Playwright and a local Chromium already available: `
 Windows CI additionally loads the blue character in the native WebView2 fixture, confirms switching preserves the completed introduction, and captures `blue-overlay.png`. Actual Windows Codex interaction and physical multi-monitor/fullscreen coverage remain unverified.
 
 Both jobs passed in [CI run 38234511474](https://github.com/pikad520/codex-aura/actions/runs/38234511474) for implementation commit `ec632d7`. Windows built the 1.4.0 x64 installer, loaded both characters in its native fixture, captured the blue overlay, and passed installation/uninstallation checks. The installer is available as that run's `CodexAura-windows-x64-installer` artifact.
+
+## Localization (1.5.0)
+
+The shared catalog has complete English, Simplified Chinese and Japanese key coverage. Swift, .NET and Python locale tests cover first-launch system defaults, Chinese/Japanese regional variants, unsupported-language English fallback, explicit overrides and preference round trips. Existing renderer, character and installation regressions remain in the suite.
+
+On macOS 26.5.1 arm64, first launch followed the actual Japanese OS language. The native panel was switched to English and Simplified Chinese and visually inspected; labels and actions fit, and the blue character and four appearance values were retained. App controls use the selected language; system-owned window chrome/dialogs and diagnostic error details may still use the OS language. No menu-dismissal fix is claimed by this release.
+
+Windows CI now captures English/Chinese/Japanese native control panels, exercises selection without changing the character or appearance, and installs/uninstalls with each of the three installer languages. OS language matching is covered deterministically; CI does not change the runner's OS display language. Actual Windows Codex interaction, physical multi-monitor/fullscreen use and macOS Intel remain unverified.

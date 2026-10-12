@@ -8,6 +8,9 @@ final class OverlayPanel: NSPanel {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate {
+    private var l: Localization { Localization(preference:appearance.language) }
+    private var menuLabels: [String:NSMenuItem] = [:]
+    private var failureKey: String?
     private var panel: OverlayPanel!
     private var web: WKWebView!
     private var status: NSStatusItem!
@@ -44,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             name:NSNotification.Name("local.codex.aura.quit"), object:nil)
         panel = OverlayPanel(contentRect: NSRect(x:0, y:0, width:900, height:650),
             styleMask:[.borderless, .nonactivatingPanel], backing:.buffered, defer:false)
-        panel.title = "Codex Aura · 鼠标穿透浮层"
+        panel.title = l["overlayTitle"]
         panel.isOpaque = false; panel.backgroundColor = .clear; panel.hasShadow = false
         panel.ignoresMouseEvents = true; panel.hidesOnDeactivate = false
         panel.level = .floating
@@ -85,22 +88,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     }
 
     private func item(_ title: String, _ action: Selector?) -> NSMenuItem {
-        let item = NSMenuItem(title:title, action:action, keyEquivalent:""); item.target = self; return item
+        let item = NSMenuItem(title:l[title], action:action, keyEquivalent:""); item.target = self; menuLabels[title] = item; return item
     }
     private func makeMenu() {
         status = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-        status.button?.image = NSImage(systemSymbolName:"sun.max", accessibilityDescription:"曦光浮层")
-        status.button?.toolTip = "曦光 · Codex 动画浮层"
+        status.button?.image = NSImage(systemSymbolName:"sun.max", accessibilityDescription:l["overlayTitle"])
+        status.button?.toolTip = l["overlayTitle"]
         let menu = NSMenu()
-        statusLine = item("等待 Codex 前台窗口", nil); menu.addItem(statusLine)
+        statusLine = item("waiting", nil); menu.addItem(statusLine)
         menu.addItem(.separator())
-        toggleItem = item("隐藏浮层", #selector(toggle)); menu.addItem(toggleItem)
-        menu.addItem(item("重播开场", #selector(replay)))
-        menu.addItem(item("调色控制面板…", #selector(showControls)))
+        toggleItem = item("hide", #selector(toggle)); menu.addItem(toggleItem)
+        menu.addItem(item("replay", #selector(replay)))
+        menu.addItem(item("controls", #selector(showControls)))
         menu.addItem(.separator())
-        menu.addItem(item("使用与卸载说明…", #selector(showReadme)))
-        menu.addItem(item("退出曦光浮层", #selector(quit)))
+        menu.addItem(item("help", #selector(showReadme)))
+        menu.addItem(item("quit", #selector(quit)))
         status.menu = menu
+    }
+
+    private func refreshLanguage() {
+        for (key,item) in menuLabels { item.title = l[key] }
+        toggleItem.title = l[enabled ? "hide" : "show"]
+        status.button?.toolTip = l["overlayTitle"]
+        status.button?.image?.accessibilityDescription = l["overlayTitle"]
+        panel.title = l["overlayTitle"]
+        update()
     }
 
     private func installHotKey() {
@@ -150,7 +162,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             shown = visible
             web.evaluateJavaScript("window.aura?.setActive(\(visible))", completionHandler:nil)
         }
-        statusLine.title = !ready ? "正在准备动画…" : !enabled ? "已隐藏 · 动画已暂停" : visible ? "Codex 前台 · 动画播放中" : "等待 Codex 前台窗口"
+        statusLine.title = l[failureKey ?? (!ready ? "preparing" : !enabled ? "paused" : visible ? "playing" : "waiting")]
         if diagnosticMode, Date().timeIntervalSince(lastDiagnostic) > 1 {
             lastDiagnostic = Date()
             let base: [String:Any] = ["visible":visible, "enabled":enabled, "ready":ready,
@@ -169,19 +181,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             try? data.write(to:storage.appendingPathComponent(name), options:.atomic)
         }
     }
-    @objc func toggle() { enabled.toggle(); toggleItem.title = enabled ? "隐藏浮层" : "显示浮层"; update() }
+    @objc func toggle() { enabled.toggle(); toggleItem.title = l[enabled ? "hide" : "show"]; update() }
     @objc func replay() { web.evaluateJavaScript("window.aura?.replay()", completionHandler:nil) }
     private func saveAppearance() {
         writeJSON(["version":2, "controlsVersion":1, "opacity":appearance.opacity, "saturation":appearance.saturation,
-            "contrast":appearance.contrast, "brightness":appearance.brightness, "character":appearance.character], name:"settings.json")
+            "contrast":appearance.contrast, "brightness":appearance.brightness, "character":appearance.character, "language":appearance.language], name:"settings.json")
     }
     @objc func showControls() {
         if controls == nil {
             controls = ControlsWindow(appearance:appearance)
             controls?.onChange = { [weak self] value in
                 guard let self else { return }
+                let languageChanged = self.appearance.language != value.language
                 self.appearance = value
-                self.web.evaluateJavaScript("window.aura?.setAppearance(\(value.json), true)", completionHandler:nil)
+                if languageChanged { self.refreshLanguage() }
+                else { self.web.evaluateJavaScript("window.aura?.setAppearance(\(value.json), true)", completionHandler:nil) }
                 self.pendingSave?.cancel()
                 let save = DispatchWorkItem { [weak self] in self?.saveAppearance() }
                 self.pendingSave = save
@@ -198,7 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func applicationShouldHandleReopen(_ sender:NSApplication, hasVisibleWindows flag:Bool) -> Bool {
         showControls(); return true
     }
-    @objc func showReadme() { if let url = Bundle.main.url(forResource:"README", withExtension:"txt") { NSWorkspace.shared.open(url) } }
+    @objc func showReadme() { if let url = Bundle.main.url(forResource:l.helpFile, withExtension:"md") { NSWorkspace.shared.open(url) } }
     @objc func quit() { NSApp.terminate(nil) }
     func userContentController(_ userContentController:WKUserContentController, didReceive message:WKScriptMessage) {
         guard let body = message.body as? [String:Any], let state = body["status"] as? String else { return }
@@ -207,7 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             web.evaluateJavaScript("window.aura.setAppearance(\(appearance.json))", completionHandler:nil)
             update()
         } else {
-            timer?.invalidate(); panel.orderOut(nil); statusLine.title = "动画加载失败，请重新启动"
+            timer?.invalidate(); panel.orderOut(nil); failureKey = "loadFailed"; statusLine.title = l["loadFailed"]
             if diagnosticMode { writeJSON(body, name:"renderer-error.json") }
             NSLog("Codex Aura renderer failed: %@", String(describing:body["message"]))
         }
@@ -217,7 +231,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         decisionHandler(navigationAction.request.url?.isFileURL == true ? .allow : .cancel)
     }
     func webViewWebContentProcessDidTerminate(_ webView:WKWebView) {
-        ready = false; update(); statusLine.title = "渲染进程已停止，请退出后重启"
+        ready = false; failureKey = "processStopped"; update()
         if diagnosticMode { writeJSON(["error":"WebContentProcessDidTerminate"], name:"renderer-error.json") }
         timer?.invalidate()
     }

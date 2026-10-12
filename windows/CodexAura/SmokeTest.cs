@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -93,9 +95,33 @@ internal static class SmokeTest
             await Task.Delay(200);
             using var staticFrame = JsonDocument.Parse(await overlay.ReadStatusAsync());
             Check(staticFrame.RootElement.GetProperty("time").GetDouble() == reducedTime, "Reduced motion stops animation while visible");
+            // Exercise the actual native picker and layout, preserving the existing values.
+            var original = new Appearance(.15, 1.15, 2, .8, "blue-hime", "en");
+            var controls = new ControlsWindow(original);
+            var edited = original;
+            controls.Changed += value => edited = value;
+            try
+            {
+                controls.Show();
+                var languagePicker = ((StackPanel)controls.Content).Children.OfType<ComboBox>().First();
+                foreach (var language in new[] { "ja", "zh-CN", "en" })
+                {
+                    languagePicker.SelectedIndex = Array.IndexOf(Localization.Choices, language);
+                    await Task.Delay(150);
+                    Check(edited == original with { Language = language }, "Language picker preserves character and appearance");
+                    Check(controls.Title == new Localization(language)["panelTitle"], "Panel title follows language");
+                    var panelImage = new RenderTargetBitmap((int)controls.ActualWidth, (int)controls.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+                    panelImage.Render(controls);
+                    var panelEncoder = new PngBitmapEncoder(); panelEncoder.Frames.Add(BitmapFrame.Create(panelImage));
+                    using var stream = File.Create(Path.Combine(directory, "controls-" + language + ".png"));
+                    panelEncoder.Save(stream);
+                }
+            }
+            finally { controls.Close(); }
             File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new {
                 passed = true, os = Environment.OSVersion.ToString(), runtime = Environment.Version.ToString(), webView2 = overlay.BrowserVersion,
                 renderer = status.RootElement.Clone(), blueRenderer = blueStatus.RootElement.Clone(), visiblePixels, translucentPixels,
+                localizedControls = new[] { "en", "zh-CN", "ja" },
                 scope = "Own fixture only; not real Codex or physical multi-monitor interaction"
             }, new JsonSerializerOptions { WriteIndented = true }));
             app.Shutdown(0);

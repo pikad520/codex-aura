@@ -11,11 +11,11 @@ An independent, unofficial companion; it does not modify Codex or read chat cont
 | Platform | Distribution | Status |
 | --- | --- | --- |
 | macOS | Source; compile and sign locally | Apple Silicon verified; Intel not verified |
-| Windows 11 x64 | `CodexAura-1.4.0-windows-x64-setup.exe` | Preview; see [verification](docs/verification.md) |
+| Windows 11 x64 | `CodexAura-1.5.0-windows-x64-setup.exe` | Preview; see [verification](docs/verification.md) |
 
-The second character is available in source builds and the 1.4.0 Actions installer; older release installers do not include it.
+Version 1.5.0 adds live language switching and includes both characters. Download the new preview from [Releases](https://github.com/pikad520/codex-aura/releases).
 
-No macOS ZIP/DMG, Windows portable ZIP, x86 or ARM64 installer is provided. The macOS UI is Chinese; Windows controls are English. Documentation is available in all three languages.
+No macOS ZIP/DMG, Windows portable ZIP, x86 or ARM64 installer is provided. Both native interfaces, the Windows installer, and documentation support English, Simplified Chinese and Japanese.
 
 ## macOS: local build and local signature
 
@@ -56,7 +56,11 @@ The installer is currently **unsigned**; Windows may show an unknown-publisher/S
 
 ## Controls and behavior
 
-Use the sun icon in the macOS menu bar or Windows notification area. Choose **调色控制面板… / Appearance…**; sliders and numeric fields update immediately and save automatically. On macOS, controls appear on first launch; on Windows, open them from the tray or double-click the tray icon.
+Use the sun icon in the macOS menu bar or Windows notification area. Choose **Appearance… / 调色控制面板… / 外観設定…**; sliders and numeric fields update immediately and save automatically. On macOS, controls appear on first launch; on Windows, open them from the tray or double-click the tray icon.
+
+The **Language** selector offers **Follow system / English / 简体中文 / 日本語**. New installations and older settings without a language default to the primary OS UI language: Chinese variants use Simplified Chinese, Japanese uses Japanese, and unsupported languages fall back to English. An explicit selection applies immediately to controls and menus, saves automatically and survives restarts. Returning to Follow system uses the OS language again; OS language changes take effect on the next app launch. Language changes and Restore defaults preserve your character and animation progress. Number formatting follows system regional settings. Help opens the matching README.
+
+Windows Setup defaults to the OS UI language using Inno Setup’s language matching, offers a language choice, and remembers the previous installer language on upgrades. Its language is separate from the app preference. The app starts in Follow system and upgrades preserve saved choices.
 
 Choose **Golden · Waves** (original) or **Blue · Hime cut** in the character selector. The blue-haired character pairs a reserved expression with a gentle smile. Selection saves across restarts; switching preserves the intro clock and four appearance values. Restore defaults resets appearance while keeping the selected character. The original four textures are unchanged; the blue character uses two new textures and derives matching linework at load time.
 
@@ -92,7 +96,7 @@ The animation has no API calls, external assets or local HTTP server. Windows se
 dotnet run --project windows/CoreTests -c Release
 ```
 
-On Windows with .NET SDK 10.0.401 and Inno Setup 6 installed:
+On Windows with .NET SDK 10.0.401 and Inno Setup 6.5+ installed:
 
 ```powershell
 ./windows/build.ps1 -Installer
@@ -101,6 +105,10 @@ On Windows with .NET SDK 10.0.401 and Inno Setup 6 installed:
 This produces a self-contained x64 application and the installer under `windows/installer-output/`. WebView2 SDK 1.0.4258.31 is locked in `packages.lock.json`. CI checks macOS regressions, Windows tests, native rendering against an isolated fixture and installer/uninstaller behavior. It publishes only Windows installer artifacts. Exact versions, results and outstanding manual checks are in [verification](docs/verification.md).
 
 `source/` holds the macOS host; `windows/CodexAura/` holds the Windows host; `web/` is shared. [Specifications](specs/windows-x64.md) describe behavior, and [DESCRIPTION.md](DESCRIPTION.md) contains three-language repository descriptions.
+
+## Localization development
+
+`web/locales.json` is the shared catalog for both native hosts, local management messages and custom Windows Setup prompts. Keep matching keys in all three languages. After a local build, `python3 tests/test-localization.py` checks coverage. Swift and .NET tests cover language resolution and settings migration; Windows CI exercises the native language picker and all three installer languages. Inno Setup 6.5+ supplies official Chinese and Japanese wizard messages. See [requirements](specs/localization.md).
 
 ## Assets and license
 

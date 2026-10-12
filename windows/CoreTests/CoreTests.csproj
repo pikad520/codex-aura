@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../CodexAura/Localization.cs" Link="Localization.cs" />
+    <Content Include="../../web/locales.json" Link="Web/locales.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../CodexAura/Appearance.cs" Link="Appearance.cs" />
     <Compile Include="../CodexAura/WindowPolicy.cs" Link="WindowPolicy.cs" />
   </ItemGroup>

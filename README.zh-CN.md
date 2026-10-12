@@ -11,11 +11,11 @@
 | 平台 | 分发方式 | 状态 |
 | --- | --- | --- |
 | macOS | 源码，本地编译与签名 | Apple Silicon 已验证，Intel 未验证 |
-| Windows 11 x64 | `CodexAura-1.4.0-windows-x64-setup.exe` | 预览版，见[验证记录](docs/verification.md) |
+| Windows 11 x64 | `CodexAura-1.5.0-windows-x64-setup.exe` | 预览版，见[验证记录](docs/verification.md) |
 
-第二角色已加入源码和 1.4.0 Actions 安装器；较早的 Release 安装器不包含此角色。
+1.5.0 新增实时语言切换，包含金发和蓝发两个角色。新版预览可从 [Releases](https://github.com/pikad520/codex-aura/releases) 下载。
 
-不提供 macOS ZIP/DMG、Windows 便携 ZIP、x86 或 ARM64 安装器。macOS 界面为中文，Windows 控件为英文；文档提供中英日三语版本。
+不提供 macOS ZIP/DMG、Windows 便携 ZIP、x86 或 ARM64 安装器。两端原生界面、Windows 安装器与文档均支持简体中文、英语和日语。
 
 ## macOS 本地编译与签名
 
@@ -58,6 +58,10 @@ Finder 脚本 `安装并启动.command`、`开启登录自启.command` 使用 `/
 
 使用 macOS 菜单栏或 Windows 通知区域的太阳图标，选择 **调色控制面板… / Appearance…**。滑块和数值输入实时生效并自动保存。macOS 首次启动自动显示面板；Windows 从托盘菜单或双击托盘图标打开。
 
+**语言**选项提供 **跟随系统 / English / 简体中文 / 日本語**。新安装及旧版未保存语言的设置默认跟随系统主要界面语言：中文语言变体使用简体中文，日语使用日语，其他不支持的语言回退英语。手动选择立即更新面板和菜单，自动保存，重启后保持；选回“跟随系统”可恢复自动选择，系统语言变化在下次启动时读取。切换语言和恢复默认不会更换角色或重播开场。数字格式仍遵循系统区域设置，帮助菜单打开对应语言 README。
+
+Windows 安装器使用 Inno Setup 的系统界面语言匹配，允许手动选择，升级时记住上次安装器语言；它与应用语言独立。应用初始为“跟随系统”，升级保留已保存的选择。
+
 在角色选择项中切换 **金发 · 大波浪**（原角色）或 **蓝发 · 公主切**。蓝发角色气质清冷，带有柔和笑意。选择自动保存，重启后保持；切换时保留开场进度和四个调色参数。“恢复默认”只重置调色，保留所选角色。原四张素材完整保留，蓝发角色使用两张新素材，并在加载时生成对应线稿。
 
 | 参数 | 默认值 | 范围 |
@@ -92,7 +96,7 @@ Finder 脚本 `安装并启动.command`、`开启登录自启.command` 使用 `/
 dotnet run --project windows/CoreTests -c Release
 ```
 
-Windows 开发环境安装 .NET SDK 10.0.401 和 Inno Setup 6 后执行：
+Windows 开发环境安装 .NET SDK 10.0.401 和 Inno Setup 6.5+ 后执行：
 
 ```powershell
 ./windows/build.ps1 -Installer
@@ -101,6 +105,10 @@ Windows 开发环境安装 .NET SDK 10.0.401 和 Inno Setup 6 后执行：
 生成包含 .NET 运行时的 x64 应用，安装器位于 `windows/installer-output/`。WebView2 SDK 1.0.4258.31 由 `packages.lock.json` 锁定。CI 检查 macOS 回归、Windows 测试、独立测试窗口的原生渲染及安装卸载，仅上传 Windows 安装器产物。具体版本、结果和未完成的手动检查见[验证记录](docs/verification.md)。
 
 `source/` 为 macOS 窗口层，`windows/CodexAura/` 为 Windows 窗口层，`web/` 为共享动画。[规格](specs/windows-x64.md)描述行为，[DESCRIPTION.md](DESCRIPTION.md)保存三语项目简介。
+
+## 本地化开发
+
+`web/locales.json` 是两端、macOS 安装脚本提示及 Windows 自定义安装提示共用的翻译表。三种语言保持相同的键；本地构建后运行 `python3 tests/test-localization.py` 检查完整性。Swift 和 .NET 测试覆盖语言匹配与旧设置迁移，Windows CI 验证原生选择控件和三种安装器语言。安装器向导使用 Inno Setup 6.5+ 自带的官方中日文资源。参见[本地化需求](specs/localization.md)。
 
 ## 素材与许可证
 

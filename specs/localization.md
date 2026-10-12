@@ -1,0 +1,9 @@
+# UI localization and 1.5 release
+
+Both macOS and Windows provide English, Simplified Chinese and Japanese interfaces: appearance controls, character names, menus, tooltips, status and user-facing error messages. Use one bundled translation catalog, without new runtime dependencies. Numeric formats continue to follow system regional settings.
+
+Add a language selector with System / English / 简体中文 / 日本語. Persist `language` alongside existing settings using stable identifiers `system`, `en`, `zh-CN`, `ja`. First launch (including an installation with no preferences), old preferences without language, and invalid values use `system`. Resolve the primary OS UI language: zh variants to Simplified Chinese, ja variants to Japanese, everything else to English. Manual changes apply immediately to the panel and menu, without resetting appearance, character or animation. Restore appearance defaults preserves language and character. System changes are read on next launch.
+
+Windows installer and uninstaller support all three languages and default to OS UI language on first installation. Installer language is independent from the app's saved preference; upgrades preserve both existing choices. macOS remains source-only with local signing, Windows remains an unsigned x64 installer. Local build/install messages are localized too.
+
+Acceptance: complete catalog key coverage; deterministic locale/fallback and preference migration/round-trip tests in Swift and .NET; native control switching preserves selections and values; translated installer builds/installs/uninstalls in Windows CI. Inspect native layout for long English/Japanese labels. Update three READMEs, bundled help, descriptions and verification limits. Publish a versioned GitHub release containing the verified Windows installer and checksum, with multilingual release notes. Preserve unrelated pending menu-bug records.
