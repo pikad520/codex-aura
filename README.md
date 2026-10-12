@@ -108,7 +108,7 @@ This produces a self-contained x64 application and the installer under `windows/
 
 ## Localization development
 
-`web/locales.json` is the shared catalog for both native hosts, local management messages and custom Windows Setup prompts. Keep matching keys in all three languages. After a local build, `python3 tests/test-localization.py` checks coverage. Swift and .NET tests cover language resolution and settings migration; Windows CI exercises the native language picker and all three installer languages. Inno Setup 6.5+ supplies official Chinese and Japanese wizard messages. See [requirements](specs/localization.md).
+`web/locales.json` is the shared catalog for both native hosts, local management messages and custom Windows Setup prompts. Keep matching keys in all three languages. After a local build, `python3 tests/test-localization.py` checks coverage. Swift and .NET tests cover language resolution and settings migration; Windows CI exercises the native language picker and all three installer languages. Official Chinese and Japanese wizard messages are pinned in `windows/installer-languages/`, so builds do not depend on optional Inno Setup language files. See [third-party notices](docs/third-party.md). See [requirements](specs/localization.md).
 
 ## Assets and license
 

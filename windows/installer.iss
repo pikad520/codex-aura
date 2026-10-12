@@ -29,8 +29,8 @@ UsePreviousLanguage=yes
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
-Name: "zh"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
-Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"
+Name: "zh"; MessagesFile: "installer-languages\ChineseSimplified.isl"
+Name: "ja"; MessagesFile: "installer-languages\Japanese.isl"
 
 #include "obj\LocalizedMessages.iss"
 

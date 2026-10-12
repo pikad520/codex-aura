@@ -108,7 +108,7 @@ Windows に .NET SDK 10.0.401 と Inno Setup 6.5+ を導入して実行します
 
 ## ローカライズ開発
 
-`web/locales.json` は両ホスト、ローカル管理スクリプト、Windows の独自セットアップメッセージで共用します。3 言語のキーを揃え、ローカルビルド後に `python3 tests/test-localization.py` で確認してください。Swift と .NET のテストは言語判定と設定移行を、Windows CI はネイティブの言語選択と 3 言語のインストールを検証します。Inno Setup 6.5+ の公式中国語・日本語リソースを使用します。[要件](specs/localization.md)も参照してください。
+`web/locales.json` は両ホスト、ローカル管理スクリプト、Windows の独自セットアップメッセージで共用します。3 言語のキーを揃え、ローカルビルド後に `python3 tests/test-localization.py` で確認してください。Swift と .NET のテストは言語判定と設定移行を、Windows CI はネイティブの言語選択と 3 言語のインストールを検証します。公式の中国語・日本語リソースを `windows/installer-languages/` に固定して収録し、Inno Setup の追加言語ファイルの有無に依存しません。[サードパーティ通知](docs/third-party.md)を参照してください。[要件](specs/localization.md)も参照してください。
 
 ## 素材とライセンス
 

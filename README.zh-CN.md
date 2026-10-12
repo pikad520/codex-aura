@@ -108,7 +108,7 @@ Windows 开发环境安装 .NET SDK 10.0.401 和 Inno Setup 6.5+ 后执行：
 
 ## 本地化开发
 
-`web/locales.json` 是两端、macOS 安装脚本提示及 Windows 自定义安装提示共用的翻译表。三种语言保持相同的键；本地构建后运行 `python3 tests/test-localization.py` 检查完整性。Swift 和 .NET 测试覆盖语言匹配与旧设置迁移，Windows CI 验证原生选择控件和三种安装器语言。安装器向导使用 Inno Setup 6.5+ 自带的官方中日文资源。参见[本地化需求](specs/localization.md)。
+`web/locales.json` 是两端、macOS 安装脚本提示及 Windows 自定义安装提示共用的翻译表。三种语言保持相同的键；本地构建后运行 `python3 tests/test-localization.py` 检查完整性。Swift 和 .NET 测试覆盖语言匹配与旧设置迁移，Windows CI 验证原生选择控件和三种安装器语言。安装器向导的官方中日文资源固定保存在 `windows/installer-languages/`，构建不依赖 Inno Setup 是否安装了可选语言包。参见[第三方声明](docs/third-party.md)。参见[本地化需求](specs/localization.md)。
 
 ## 素材与许可证
 
