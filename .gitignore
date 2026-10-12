@@ -1,0 +1,27 @@
+# macOS metadata
+.DS_Store
+._*
+
+# Generated app bundles and release archives
+*.app/
+*.dSYM/
+*.zip
+*.dmg
+/build/
+/dist/
+
+# Local test output and language caches
+/.build/
+__pycache__/
+*.py[cod]
+*.log
+
+# Local editor configuration and credentials
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
