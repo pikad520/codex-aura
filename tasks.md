@@ -8,7 +8,7 @@
 - [x] Verify local locale migration, translated macOS controls and builds.
 - [x] Verify Windows native controls and all installer languages in CI: 38238024050.
 - [x] Update multilingual documentation, push and verify CI.
-- [ ] Publish the verified 1.5.0 preview installer and checksum.
+- [x] Publish verified installer and checksum: [v1.5.0-preview.1](https://github.com/pikad520/codex-aura/releases/tag/v1.5.0-preview.1); uploaded SHA-256 matches CI artifact.
 
 ## Second character
 
