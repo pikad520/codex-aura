@@ -6,12 +6,14 @@ struct AppearanceSettings: Codable, Equatable {
     var saturation = 1.30
     var contrast = 1.10
     var brightness = 0.70
+    var character = "golden"
 
     static let defaults = AppearanceSettings()
 
     static func load(_ data: Data?) -> AppearanceSettings {
         guard let data, let values = try? JSONSerialization.jsonObject(with:data) as? [String:Any] else { return .defaults }
         var result = defaults
+        result.character = values["character"] as? String ?? "golden"
         if (values["version"] as? Int ?? 0) >= 2 {
             result.opacity = values["opacity"] as? Double ?? result.opacity
             result.saturation = values["saturation"] as? Double ?? result.saturation
@@ -28,6 +30,7 @@ struct AppearanceSettings: Codable, Equatable {
     }
 
     mutating func normalize() {
+        if character != "blue-hime" { character = "golden" }
         func bounded(_ value: Double, _ lower: Double, _ upper: Double, _ fallback: Double) -> Double {
             value.isFinite ? min(upper, max(lower,value)) : fallback
         }

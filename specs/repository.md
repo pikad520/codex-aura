@@ -1,6 +1,6 @@
 # Repository scope
 
-Codex Aura includes a macOS AppKit host, a Windows x64 WPF/WebView2 host, and shared Canvas/WebGL animation with four original textures. Current development and distribution requirements are in [windows-x64.md](windows-x64.md).
+Codex Aura includes a macOS AppKit host, a Windows x64 WPF/WebView2 host, and shared Canvas/WebGL animation with the original golden character and a blue hime-cut character. Character behavior is specified in [characters.md](characters.md). Current development and distribution requirements are in [windows-x64.md](windows-x64.md).
 
 macOS is distributed as source only, locally built and ad-hoc signed without a Developer ID. Windows provides an x64 installer; no x86/ARM64 installer, portable ZIP, or macOS binary releases. Generated binaries, installers, caches, diagnostics and credentials stay out of Git.
 

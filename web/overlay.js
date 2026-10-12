@@ -12,8 +12,9 @@ if (typeof document !== 'undefined') (async function () {
   const canvas = document.getElementById('scene'), ctx = canvas.getContext('2d');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let active = false, ready = false, time = 0, last = 0, raf = 0, frames = 0;
-  let appearance = {opacity:.20, saturation:1.3, contrast:1.1, brightness:.7};
+  let appearance = {opacity:.20, saturation:1.3, contrast:1.1, brightness:.7, character:"golden"};
   let editing = false, width = 1, height = 1, rig;
+  let character = "golden", requestedCharacter = null, loadVersion = 0, loading = false, loadError = "";
   function report(value) {
     window.webkit?.messageHandlers?.aura?.postMessage(value);
     window.chrome?.webview?.postMessage(value);
@@ -47,12 +48,12 @@ if (typeof document !== 'undefined') (async function () {
       ctx.globalAlpha = state.outline*(1-state.settled);
       ctx.drawImage(lines, x, y, 1672*scale, 941*scale);
       if (state.color > 0 && state.color < 1) {
-        ctx.globalAlpha = .7; ctx.fillStyle = '#ffe5a0';
+        ctx.globalAlpha = .7; ctx.fillStyle = auraCharacters[character].scan;
         ctx.fillRect(0, scanY, width, 1.5);
       }
     }
     // Sparse slow flecks; avoid code rain over the user's text.
-    ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = '#ffdb8a';
+    ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = auraCharacters[character].flecks;
     if (!reduced.matches) for (let i = 0; i < 18; i++) {
       ctx.globalAlpha = (.15+.12*Math.sin(time*.8+i))*state.outline;
       const px = ((i*.6180339)%1)*width + Math.sin(time*.25+i)*8;
@@ -89,29 +90,53 @@ if (typeof document !== 'undefined') (async function () {
         if (typeof value?.[key] === 'number' && Number.isFinite(value[key]))
           appearance[key] = Math.min(max, Math.max(min, value[key]));
       }
+      if (typeof value?.character === 'string') {
+        appearance.character = auraCharacterID(value.character);
+        if (appearance.character !== requestedCharacter) void selectCharacter(appearance.character);
+      }
       if (liveEdit) editing = true;
       if (ready) draw();
     },
     replay() { time = 0; last = 0; editing = false; if (ready) { draw(); start(); } },
-    status() { return {ready, active, frames, time, reduced: reduced.matches, appearance:{...appearance},
+    status() { return {ready, active, frames, time, character, loading, loadError, reduced: reduced.matches, appearance:{...appearance},
       displayOpacity: Number(canvas.style.opacity), reveal: cycleAt(time, reduced.matches)}; }
   };
   addEventListener('resize', resize);
   reduced.addEventListener('change', () => window.aura.setActive(active));
   resize();
-  try {
-    const images = await Promise.all(['character.png','closed-eye.png','contours.png','closed-contours.png'].map(name =>
-      new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(Error(name)); image.src = window.AURA_TEXTURES?.[name] || 'assets/'+name; })));
-    for (const i of [2,3]) {
-      const surface = document.createElement('canvas'); surface.width = 1672; surface.height = 941;
-      const tint = surface.getContext('2d'); tint.drawImage(images[i], 0, 0);
-      tint.globalCompositeOperation = 'multiply'; tint.fillStyle = '#ffe4a0'; tint.fillRect(0, 0, 1672, 941); images[i] = surface;
+  async function selectCharacter(id) {
+    requestedCharacter = id;
+    const version = ++loadVersion;
+    loadError = '';
+    if (ready && id === character) { loading = false; return; }
+    loading = true;
+    try {
+      const profile = auraCharacters[id];
+      const images = await Promise.all(profile.files.map(name =>
+        new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(Error(name)); image.src = window.AURA_TEXTURES?.[name] || 'assets/'+name; })));
+      if (version !== loadVersion) return;
+      if (images.length === 2) images.push(...images.map(createCharacterContours));
+      for (const i of [2,3]) {
+        const surface = document.createElement('canvas'); surface.width = 1672; surface.height = 941;
+        const tint = surface.getContext('2d'); tint.drawImage(images[i], 0, 0);
+        tint.globalCompositeOperation = 'multiply'; tint.fillStyle = profile.tint;
+        tint.fillRect(0, 0, 1672, 941); images[i] = surface;
+      }
+      const replacement = createCharacterRig(...images, id);
+      if (!replacement || !ctx) throw Error('WebGL context unavailable');
+      const previous = rig;
+      rig = replacement; character = id; loading = false;
+      const firstLoad = !ready;
+      ready = true; previous?.dispose(); draw();
+      if (firstLoad) report({status:'ready'});
+      start();
+    } catch (error) {
+      if (version !== loadVersion) return;
+      loading = false; requestedCharacter = null; loadError = String(error);
+      if (!ready) report({status:'error', message:loadError});
+      else console.error('Character switch failed:', loadError);
     }
-    const originalWarn = console.warn;
-    let rigError = '';
-    console.warn = (...args) => { rigError = args.join(' '); originalWarn(...args); };
-    try { rig = createCharacterRig(...images); } finally { console.warn = originalWarn; }
-    if (!rig || !ctx) throw Error(rigError || 'WebGL context unavailable');
-    ready = true; draw(); report({status:'ready'}); start();
-  } catch (error) { report({status:'error', message:String(error)}); }
+  }
+  window.aura.setAppearance(window.AURA_INITIAL_APPEARANCE || {});
+  if (requestedCharacter === null) await selectCharacter(appearance.character);
 })();

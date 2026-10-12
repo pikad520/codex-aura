@@ -11,6 +11,7 @@ internal sealed class ControlsWindow : Window
 {
     private readonly Slider[] sliders = new Slider[4];
     private readonly TextBox[] fields = new TextBox[4];
+    private readonly ComboBox characterPicker = new();
     private Appearance appearance;
     private bool syncing;
     internal event Action<Appearance>? Changed;
@@ -26,6 +27,16 @@ internal sealed class ControlsWindow : Window
         Content = root;
         root.Children.Add(new TextBlock { Text = "Changes apply immediately and save automatically.",
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 20) });
+        root.Children.Add(new Label { Content = "Character", Target = characterPicker });
+        characterPicker.Items.Add("Golden · Waves"); characterPicker.Items.Add("Blue · Hime cut");
+        characterPicker.Margin = new Thickness(0, 0, 0, 16);
+        AutomationProperties.SetName(characterPicker, "Character");
+        characterPicker.SelectionChanged += (_, _) => {
+            if (syncing) return;
+            appearance = appearance with { Character = characterPicker.SelectedIndex == 1 ? "blue-hime" : "golden" };
+            Changed?.Invoke(appearance);
+        };
+        root.Children.Add(characterPicker);
         string[] names = ["Actual opacity (%)", "Saturation", "Contrast", "Brightness"];
         double[] minimum = [0, 0, .5, .2], maximum = [100, 2, 2, 1.5];
         for (var i = 0; i < 4; i++)
@@ -48,7 +59,7 @@ internal sealed class ControlsWindow : Window
         var actions = new StackPanel { Orientation = Orientation.Horizontal };
         var reset = new Button { Content = "Restore defaults", Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 4, 12, 0) };
         var replay = new Button { Content = "Replay intro", Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 4, 0, 0) };
-        reset.Click += (_, _) => { appearance = new(); Sync(); Changed?.Invoke(appearance); };
+        reset.Click += (_, _) => { appearance = new Appearance(Character: appearance.Character); Sync(); Changed?.Invoke(appearance); };
         replay.Click += (_, _) => ReplayRequested?.Invoke();
         actions.Children.Add(reset); actions.Children.Add(replay); root.Children.Add(actions);
         Sync();
@@ -74,6 +85,7 @@ internal sealed class ControlsWindow : Window
     private void Sync()
     {
         syncing = true;
+        characterPicker.SelectedIndex = appearance.Character == "blue-hime" ? 1 : 0;
         double[] values = [appearance.Opacity * 100, appearance.Saturation, appearance.Contrast, appearance.Brightness];
         for (var i = 0; i < 4; i++)
         {

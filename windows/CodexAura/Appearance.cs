@@ -5,11 +5,11 @@ using System.Text.Json;
 namespace CodexAura;
 
 internal sealed record Appearance(double Opacity = .20, double Saturation = 1.30,
-    double Contrast = 1.10, double Brightness = .70)
+    double Contrast = 1.10, double Brightness = .70, string Character = "golden")
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     public Appearance Normalize() => new(Bound(Opacity, 0, 1, .20), Bound(Saturation, 0, 2, 1.30),
-        Bound(Contrast, .5, 2, 1.10), Bound(Brightness, .2, 1.5, .70));
+        Bound(Contrast, .5, 2, 1.10), Bound(Brightness, .2, 1.5, .70), Character == "blue-hime" ? "blue-hime" : "golden");
     private static double Bound(double value, double min, double max, double fallback) =>
         double.IsFinite(value) ? Math.Clamp(value, min, max) : fallback;
     public string ToJson() => JsonSerializer.Serialize(Normalize(), JsonOptions);

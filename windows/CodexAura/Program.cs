@@ -100,7 +100,7 @@ internal sealed class Companion : IDisposable
     internal async void Start()
     {
         overlay.Show(); // Transparent and nonactivating; create the composition host before initialization.
-        try { await overlay.InitializeAsync(dataDirectory); timer.Start(); Update(); }
+        try { await overlay.InitializeAsync(dataDirectory, appearance); timer.Start(); Update(); }
         catch (Exception error) when (error is COMException or InvalidOperationException or IOException or UnauthorizedAccessException)
         {
             overlay.Hide(); failed = true; state.Text = "Could not start animation";

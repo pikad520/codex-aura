@@ -8,6 +8,10 @@ Check(Appearance.Parse("null") == defaults, "Null settings use defaults");
 Check(Appearance.Parse("{\"opacity\":0}").Opacity == 0, "Zero opacity survives loading");
 Check(Appearance.Parse("{\"opacity\":\"bad\"}") == defaults, "Invalid types use defaults");
 var values = new Appearance(.24, 1.4, 1.2, .8);
+Check(Appearance.Parse("{\"character\":\"unknown\"}").Character == "golden", "Unknown character defaults");
+Check(Appearance.Parse("{\"character\":null}").Character == "golden", "Null character defaults");
+var blue = values with { Character = "blue-hime" };
+Check(Appearance.Parse(blue.ToJson()) == blue, "Blue character and appearance round-trip");
 Check(Appearance.Parse(values.ToJson()) == values, "All four values round-trip");
 Check(new Appearance(-1, 9, 0, 9).Normalize() == new Appearance(0, 2, .5, 1.5), "Bounds enforced");
 Check(new Appearance(double.NaN, double.PositiveInfinity, double.NaN, double.NegativeInfinity).Normalize() == defaults,
@@ -18,6 +22,7 @@ try
     var path = Path.Combine(directory, "settings.json");
     Check(Appearance.Load(path) == defaults, "First launch defaults");
     values.Save(path); Check(Appearance.Load(path) == values, "Save/restart preserves settings");
+    blue.Save(path); Check(Appearance.Load(path) == blue, "Save/restart preserves blue selection");
     defaults.Save(path); Check(Appearance.Load(path) == defaults, "Atomic overwrite");
     Check(!File.Exists(path + ".tmp"), "No leftover temporary settings");
 }

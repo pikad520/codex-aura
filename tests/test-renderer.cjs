@@ -13,17 +13,21 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   let callbacks = new Map(), next = 0, reduced = {matches:false,addEventListener(_,fn){this.changed=fn;}};
   const context2d = new Proxy({}, {get(target,key){return target[key] || (()=>{});}});
   const canvas = {dataset:{},style:{},getContext(){return context2d;}};
-  const macMessages = [], windowsMessages = [];
+  const macMessages = [], windowsMessages = [], images = [];
+  let delayImages = false, disposed = 0;
   const sandbox = {console,
     webkit:{messageHandlers:{aura:{postMessage:value=>macMessages.push(value)}}},
     chrome:{webview:{postMessage:value=>windowsMessages.push(value)}}, innerWidth:1280, innerHeight:800, matchMedia:()=>reduced,
     document:{getElementById:()=>canvas,createElement:()=>({getContext:()=>context2d})},
-    Image:class {set src(v){queueMicrotask(()=>this.onload());}},
+    Image:class {set src(v){this.name=v;if(delayImages) images.push(this);else queueMicrotask(()=>this.onload());}},
     addEventListener(){}, cancelAnimationFrame(id){callbacks.delete(id);},
     requestAnimationFrame(fn){callbacks.set(++next,fn);return next;},
-    blinkAt:()=>0,createCharacterRig:()=>({render:()=>({})})};
+    blinkAt:()=>0,createCharacterRig:()=>({render:()=>({}),dispose:()=>disposed++})};
   sandbox.window = sandbox;
-  vm.runInNewContext(fs.readFileSync(require.resolve('../web/overlay.js'),'utf8'),vm.createContext(sandbox));
+  const context = vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(require.resolve('../web/characters.js'),'utf8'),context);
+  sandbox.createCharacterContours = () => ({});
+  vm.runInContext(fs.readFileSync(require.resolve('../web/overlay.js'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(sandbox.aura.status().ready,true);
   assert.equal(macMessages[0].status,'ready');
@@ -46,6 +50,25 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   assert(Math.abs(Number(canvas.style.opacity)-.20)<.001,'default actual opacity is 20%');
   assert.equal(canvas.style.filter,'saturate(1.3) contrast(1.1) brightness(0.7)');
   const finishedTime=sandbox.aura.status().time;
+  sandbox.aura.setAppearance({character:'blue-hime'},true);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(sandbox.aura.status().character,'blue-hime');
+  assert.equal(sandbox.aura.status().time,finishedTime,'character switching preserves the intro clock');
+  assert.equal(disposed,1,'old GPU rig is released');
+  assert.equal(macMessages.length,1,'switching does not repeat the native ready handshake');
+  delayImages = true;
+  sandbox.aura.setAppearance({character:'golden'});
+  assert.equal(sandbox.aura.status().character,'blue-hime','old character stays visible while loading');
+  sandbox.aura.setAppearance({character:'blue-hime'});
+  images.splice(0).forEach(image=>image.onload());
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(sandbox.aura.status().character,'blue-hime','stale loads cannot override the latest choice');
+  assert.equal(disposed,1,'cancelled loads do not dispose the active rig');
+  sandbox.aura.setAppearance({character:'unknown'});
+  images.splice(0).forEach(image=>image.onload());
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(sandbox.aura.status().character,'golden','invalid character safely defaults');
+  delayImages = false;
   sandbox.aura.setAppearance({opacity:.24,saturation:1.44,contrast:1.22,brightness:.66},true);
   assert.equal(Number(canvas.style.opacity),.24,'panel percentage is actual opacity, with no conversion');
   assert.equal(canvas.style.filter,'saturate(1.44) contrast(1.22) brightness(0.66)');

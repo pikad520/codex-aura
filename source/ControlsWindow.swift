@@ -11,12 +11,13 @@ final class ControlsWindow: NSWindowController, NSTextFieldDelegate {
     private var appearance: AppearanceSettings
     private var sliders: [NSSlider] = []
     private var fields: [NSTextField] = []
+    private let characterPicker = NSPopUpButton()
     private let names = ["实际不透明度", "饱和度", "对比度", "亮度"]
     private let limits: [(Double,Double)] = [(0,100),(0,2),(0.5,2),(0.2,1.5)]
 
     init(appearance: AppearanceSettings) {
         self.appearance = appearance
-        let panel = ControlsPanel(contentRect:NSRect(x:0,y:0,width:400,height:415),
+        let panel = ControlsPanel(contentRect:NSRect(x:0,y:0,width:400,height:465),
             styleMask:[.titled,.closable,.utilityWindow,.nonactivatingPanel], backing:.buffered, defer:false)
         panel.title = "曦光 · 调色控制面板"
         panel.level = NSWindow.Level(rawValue:NSWindow.Level.floating.rawValue+1)
@@ -37,6 +38,12 @@ final class ControlsWindow: NSWindowController, NSTextFieldDelegate {
         let note = NSTextField(wrappingLabelWithString:"拖动滑块或输入数值，实时生效并自动保存。")
         note.font = .systemFont(ofSize:12); note.textColor = .secondaryLabelColor
         root.addArrangedSubview(note)
+        let characters = NSStackView(); characters.orientation = .horizontal; characters.spacing = 12
+        characters.addArrangedSubview(NSTextField(labelWithString:"角色"))
+        characterPicker.addItems(withTitles:["金发 · 大波浪", "蓝发 · 公主切"])
+        characterPicker.target = self; characterPicker.action = #selector(characterChanged)
+        characterPicker.setAccessibilityLabel("角色")
+        characters.addArrangedSubview(characterPicker); root.addArrangedSubview(characters)
         for index in 0..<4 {
             let group = NSStackView(); group.orientation = .vertical; group.alignment = .leading; group.spacing = 7
             let row = NSStackView(); row.orientation = .horizontal; row.spacing = 8
@@ -68,6 +75,7 @@ final class ControlsWindow: NSWindowController, NSTextFieldDelegate {
     }
     required init?(coder:NSCoder) { fatalError("init(coder:) not supported") }
     private func sync() {
+        characterPicker.selectItem(at:appearance.character == "blue-hime" ? 1 : 0)
         let values = [appearance.opacity*100,appearance.saturation,appearance.contrast,appearance.brightness]
         for index in 0..<4 {
             sliders[index].doubleValue = values[index]
@@ -94,6 +102,13 @@ final class ControlsWindow: NSWindowController, NSTextFieldDelegate {
     func controlTextDidEndEditing(_ notification:Notification) {
         if let field = notification.object as? NSTextField { fieldCommitted(field) }
     }
-    @objc private func resetAppearance() { appearance = .defaults; sync(); onChange?(appearance) }
+    @objc private func characterChanged() {
+        appearance.character = characterPicker.indexOfSelectedItem == 1 ? "blue-hime" : "golden"
+        onChange?(appearance)
+    }
+    @objc private func resetAppearance() {
+        let character = appearance.character
+        appearance = .defaults; appearance.character = character; sync(); onChange?(appearance)
+    }
     @objc private func replay() { onReplay?() }
 }

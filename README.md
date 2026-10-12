@@ -4,14 +4,16 @@
 
 A click-through anime overlay for Codex, with blinking eyes, flowing hair and live appearance controls. macOS is built locally from source; Windows provides an x64 installer.
 
-An independent, unofficial companion; it does not modify Codex or read chat content. Four original textures drive a shared Canvas/WebGL animation. The intro reveals line art into color once per launch; blinking and hair motion continue until hidden. It follows foreground app state, not actual model activity or loading progress.
+An independent, unofficial companion; it does not modify Codex or read chat content. Original character textures drive a shared Canvas/WebGL animation. The intro reveals line art into color once per launch; blinking and hair motion continue until hidden. It follows foreground app state, not actual model activity or loading progress.
 
 ## Supported distribution
 
 | Platform | Distribution | Status |
 | --- | --- | --- |
 | macOS | Source; compile and sign locally | Apple Silicon verified; Intel not verified |
-| Windows 11 x64 | `CodexAura-1.3.0-windows-x64-setup.exe` | Preview; see [verification](docs/verification.md) |
+| Windows 11 x64 | `CodexAura-1.4.0-windows-x64-setup.exe` | Preview; see [verification](docs/verification.md) |
+
+The second character is available in source builds and the 1.4.0 Actions installer; older release installers do not include it.
 
 No macOS ZIP/DMG, Windows portable ZIP, x86 or ARM64 installer is provided. The macOS UI is Chinese; Windows controls are English. Documentation is available in all three languages.
 
@@ -55,6 +57,8 @@ The installer is currently **unsigned**; Windows may show an unknown-publisher/S
 ## Controls and behavior
 
 Use the sun icon in the macOS menu bar or Windows notification area. Choose **调色控制面板… / Appearance…**; sliders and numeric fields update immediately and save automatically. On macOS, controls appear on first launch; on Windows, open them from the tray or double-click the tray icon.
+
+Choose **Golden · Waves** (original) or **Blue · Hime cut** in the character selector. The blue-haired character pairs a reserved expression with a gentle smile. Selection saves across restarts; switching preserves the intro clock and four appearance values. Restore defaults resets appearance while keeping the selected character. The original four textures are unchanged; the blue character uses two new textures and derives matching linework at load time.
 
 | Setting | Default | Range |
 | --- | --- | --- |

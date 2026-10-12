@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         // file:// textures are origin-restricted by WebKit. Supply only our bundled images
         // as data URLs, without relaxing file-origin or network security settings.
         var textures: [String:String] = [:]
-        for name in ["character.png", "closed-eye.png", "contours.png", "closed-contours.png"] {
+        for name in ["character.png", "closed-eye.png", "contours.png", "closed-contours.png", "blue-hime/open.png", "blue-hime/closed.png"] {
             if let data = try? Data(contentsOf:root.appendingPathComponent("assets/"+name)) {
                 textures[name] = "data:image/png;base64,"+data.base64EncodedString()
             }
@@ -65,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if let data = try? JSONSerialization.data(withJSONObject:textures), let json = String(data:data, encoding:.utf8) {
             config.userContentController.addUserScript(WKUserScript(source:"window.AURA_TEXTURES = \(json);", injectionTime:.atDocumentStart, forMainFrameOnly:true))
         }
+        config.userContentController.addUserScript(WKUserScript(source:"window.AURA_INITIAL_APPEARANCE = \(appearance.json);", injectionTime:.atDocumentStart, forMainFrameOnly:true))
         web = WKWebView(frame:panel.contentView!.bounds, configuration:config)
         web.autoresizingMask = [.width, .height]
         web.setValue(false, forKey:"drawsBackground")
@@ -172,7 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     @objc func replay() { web.evaluateJavaScript("window.aura?.replay()", completionHandler:nil) }
     private func saveAppearance() {
         writeJSON(["version":2, "controlsVersion":1, "opacity":appearance.opacity, "saturation":appearance.saturation,
-            "contrast":appearance.contrast, "brightness":appearance.brightness], name:"settings.json")
+            "contrast":appearance.contrast, "brightness":appearance.brightness, "character":appearance.character], name:"settings.json")
     }
     @objc func showControls() {
         if controls == nil {

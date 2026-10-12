@@ -61,6 +61,23 @@ internal static class SmokeTest
             Check(visiblePixels > 1000 && translucentPixels > 1000, "Transparent WPF composition contains rendered character");
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(image));
             using (var stream = File.Create(Path.Combine(directory, "overlay.png"))) encoder.Save(stream);
+            await overlay.SetAppearanceAsync(new Appearance(.24, 1.4, 1.2, .8, "blue-hime"), true);
+            var blueReady = false;
+            for (var attempt = 0; attempt < 100; attempt++)
+            {
+                await Task.Delay(100);
+                using var selection = JsonDocument.Parse(await overlay.ReadStatusAsync());
+                if (selection.RootElement.GetProperty("character").GetString() == "blue-hime" &&
+                    !selection.RootElement.GetProperty("loading").GetBoolean()) { blueReady = true; break; }
+            }
+            Check(blueReady, "Blue character loads in native WebView2");
+            using var blueStatus = JsonDocument.Parse(await overlay.ReadStatusAsync());
+            Check(blueStatus.RootElement.GetProperty("time").GetDouble() > 7, "Character switch preserves settled intro");
+            await Task.Delay(300);
+            var blueImage = new RenderTargetBitmap((int)overlay.ActualWidth, (int)overlay.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+            blueImage.Render(overlay);
+            var blueEncoder = new PngBitmapEncoder(); blueEncoder.Frames.Add(BitmapFrame.Create(blueImage));
+            using (var stream = File.Create(Path.Combine(directory, "blue-overlay.png"))) blueEncoder.Save(stream);
             await overlay.SetVisibleAsync(false, default, 0);
             using var paused = JsonDocument.Parse(await overlay.ReadStatusAsync());
             var time = paused.RootElement.GetProperty("time").GetDouble();
@@ -78,7 +95,7 @@ internal static class SmokeTest
             Check(staticFrame.RootElement.GetProperty("time").GetDouble() == reducedTime, "Reduced motion stops animation while visible");
             File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new {
                 passed = true, os = Environment.OSVersion.ToString(), runtime = Environment.Version.ToString(), webView2 = overlay.BrowserVersion,
-                renderer = status.RootElement.Clone(), visiblePixels, translucentPixels,
+                renderer = status.RootElement.Clone(), blueRenderer = blueStatus.RootElement.Clone(), visiblePixels, translucentPixels,
                 scope = "Own fixture only; not real Codex or physical multi-monitor interaction"
             }, new JsonSerializerOptions { WriteIndented = true }));
             app.Shutdown(0);

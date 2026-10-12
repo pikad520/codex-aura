@@ -14,7 +14,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <ApplicationIcon>aura.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <!-- WPF owns DPI awareness via the manifest; WinForms is used only for the tray. -->
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
     <AssemblyName>CodexAura</AssemblyName>

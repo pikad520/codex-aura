@@ -1,4 +1,4 @@
-Codex Aura 1.3.0 — quick help / 使用说明 / 使い方
+Codex Aura 1.4.0 — quick help / 使用说明 / 使い方
 
 English
 macOS: source-only. Install Xcode Command Line Tools, run ./build.sh, then
@@ -12,6 +12,8 @@ The current installer is unsigned. Real Codex.exe interaction remains unverified
 see docs/verification.md for build, automated native and installer test results.
 
 Open the sun menu/tray icon → 调色控制面板… / Appearance… to adjust appearance.
+Select Golden · Waves or Blue · Hime cut. Selection saves; switching does not replay.
+Restore defaults keeps your selected character.
 Defaults: actual opacity 20%, saturation 1.30, contrast 1.10, brightness 0.70.
 Changes save automatically. Intro runs once; Replay restarts it. Blink/hair motion
 continues, pauses when hidden, and respects the OS reduced-motion setting.
@@ -38,6 +40,7 @@ Windows 只提供 Windows 11 x64 安装器，已包含 .NET 运行时；需要 W
 缺少 WebView2 时提示打开微软下载页，安装后重试。安装器尚未正式签名。
 真实 Codex.exe 窗口交互尚未验证，构建及自动测试记录见 docs/verification.md。
 通过太阳菜单/托盘的调色面板调整四个参数，默认 20%、1.30、1.10、0.70，自动保存。
+角色可选“金发 · 大波浪”或“蓝发 · 公主切”，自动保存。切换不重播，恢复默认保留角色。
 每次启动只播放一次开场，之后持续眨眼摆发，隐藏时暂停。动画不表示模型进度。
 macOS 卸载可执行 python3 manage.py uninstall 或 卸载.command；手动路径见上方。
 Windows 从系统“已安装的应用”卸载，可选清理数据。静默卸载保留数据；退出后可手动
@@ -53,7 +56,8 @@ WebView2 Runtime がない場合は Microsoft のダウンロードページを�
 インストーラーは未署名で、実際の Codex.exe 操作は未検証です。自動テストの範囲と
 結果は docs/verification.md を参照してください。
 太陽メニュー／トレイから色調整パネルを開きます。初期値は 20%、1.30、1.10、0.70。
-自動保存され、イントロは起動時に一度再生します。非表示で停止し、モデルの進捗は示しません。
+金髪ウェーブ／青髪の姫カットを選択できます。切り替えで再生をやり直しません。
+初期値に戻してもキャラクターは維持されます。選択は保存され、イントロは起動時に一度再生します。非表示で停止し、モデルの進捗は示しません。
 macOS は python3 manage.py uninstall または 卸载.command で削除できます。
 Windows は「インストールされているアプリ」から削除し、設定データの削除も選択できます。
 サイレント削除ではデータを保持します。終了後、%LOCALAPPDATA%\Codex Aura を

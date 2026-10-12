@@ -1,4 +1,4 @@
-#define AppVersion "1.3.0"
+#define AppVersion "1.4.0"
 [Setup]
 AppId={{C148D59F-0C96-47F4-8DB5-D67401ED316A}
 AppName=Codex Aura

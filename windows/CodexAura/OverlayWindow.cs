@@ -50,7 +50,7 @@ internal sealed class OverlayWindow : Window
         if (message == 0x0021) { handled = true; return new nint(3); } // MA_NOACTIVATE
         return 0;
     }
-    internal async Task InitializeAsync(string dataDirectory)
+    internal async Task InitializeAsync(string dataDirectory, Appearance? appearance = null)
     {
         var environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(dataDirectory, "WebView2"));
         await browser.EnsureCoreWebView2Async(environment);
@@ -88,6 +88,7 @@ internal sealed class OverlayWindow : Window
             catch (InvalidOperationException) { Fail("Invalid animation status."); }
             catch (System.Collections.Generic.KeyNotFoundException) { Fail("Invalid animation status."); }
         };
+        await core.AddScriptToExecuteOnDocumentCreatedAsync($"window.AURA_INITIAL_APPEARANCE = {(appearance ?? new()).ToJson()};");
         core.Navigate(Origin + "index.html");
     }
     private void Fail(string message)

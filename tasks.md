@@ -1,5 +1,14 @@
 # Cross-platform release work
 
+## Second character
+
+- [x] Generate and inspect blue hime-cut open/closed-eye artwork; preserve original textures.
+- [x] Add shared character selection, fitted motion and derived linework.
+- [x] Add persisted selection to macOS and Windows controls.
+- [x] Verify settings, switching, browser pixel checks and local packaging; update multilingual usage and asset credits.
+- [x] Install locally and verify the native character picker preserves existing appearance settings.
+- [ ] Push and verify Windows native fixture/installer CI.
+
 - [x] Inspect existing macOS host, shared renderer and distribution scripts.
 - [x] Record scope and acceptance in specs/windows-x64.md.
 - [x] Confirm the Windows hosting dependency with the user.

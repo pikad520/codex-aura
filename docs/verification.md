@@ -24,3 +24,13 @@ Outstanding manual checks on Windows: real Codex.exe identity and window followi
 中文：构建成功、策略测试和测试窗口验证，不等于真实 Codex 使用验证。Windows 真实 Codex 版本、鼠标键盘穿透、多显示器与全屏仍待实机确认；macOS 的全屏与多显示器切换也未完整验证。
 
 日本語：ビルド、ポリシーテスト、専用テストウィンドウの検証は、実際の Codex での動作確認とは異なります。Windows の実際の Codex バージョン、入力透過、複数画面、フルスクリーンは未検証です。macOS のフルスクリーンと複数画面の切り替えも未検証です。
+
+## Second character (1.4.0)
+
+Local macOS build/signature, Swift settings migration and character persistence, shared renderer switching/race/one-shot tests, Windows settings persistence and x64 cross-compilation passed on the same local environment above. All four original golden asset SHA-256 values match the previous commit. No dependency versions changed. The updated macOS app was installed locally; the native picker selected Blue · Hime cut and retained all four existing appearance values.
+
+Real browser pixel checks ran in Chrome 154.0.8037.98 on macOS: the saved blue selection loaded first; full blink changed 23,203 pixels inside the eye region and zero outside it; hair motion changed 212,992 pixels with zero changes in the protected face region. Derived linework rendered, and open/half-closed/closed/linework frames were visually inspected. This is texture deformation, not a skeletal character model.
+
+Optional reproduction, with Playwright and a local Chromium already available: `AURA_BROWSER_CHANNEL=chrome node tests/test-character-browser.cjs` (omit the environment variable for Playwright's own Chromium). This test starts an isolated loopback server and writes evidence only under `.build/character-check/`; Playwright is test tooling, not an application dependency. Normal app operation needs no HTTP server.
+
+Windows CI additionally loads the blue character in the native WebView2 fixture, confirms switching preserves the completed introduction, and captures `blue-overlay.png`. Actual Windows Codex interaction and physical multi-monitor/fullscreen coverage remain unverified.
