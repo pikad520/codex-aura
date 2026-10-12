@@ -101,6 +101,11 @@ internal sealed class OverlayWindow : Window
         catch (Exception error) when (error is InvalidOperationException or System.Runtime.InteropServices.COMException)
         { if (!disposed) Fail("The animation could not update. Restart Codex Aura."); }
     }
+    internal Task<string> SetMotionForTestAsync(bool reduced) => browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+        "Emulation.setEmulatedMedia", JsonSerializer.Serialize(new {
+            features = new[] { new { name = "prefers-reduced-motion", value = reduced ? "reduce" : "no-preference" } }
+        }));
+    internal string BrowserVersion => browser.CoreWebView2.Environment.BrowserVersionString;
     internal Task<string> ReadStatusAsync() => browser.ExecuteScriptAsync("window.aura.status()");
     internal Task SetAppearanceAsync(Appearance value, bool edit = false) =>
         ScriptAsync($"window.aura.setAppearance({value.ToJson()}, {(edit ? "true" : "false")})");

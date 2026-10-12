@@ -29,6 +29,8 @@ internal static class SmokeTest
             overlay.Show();
             await overlay.InitializeAsync(Path.Combine(directory, "profile"));
             await ready.Task.WaitAsync(TimeSpan.FromSeconds(45));
+            // Hosted Windows runners disable animation by default. Exercise both modes explicitly.
+            await overlay.SetMotionForTestAsync(false);
             Check(Native.TryRect(fixtureHandle, out var rect), "Fixture bounds available");
             await overlay.SetVisibleAsync(true, rect, 0);
             await overlay.SetAppearanceAsync(new Appearance(.24, 1.4, 1.2, .8), true);
@@ -36,6 +38,8 @@ internal static class SmokeTest
             using var status = JsonDocument.Parse(await overlay.ReadStatusAsync());
             Check(status.RootElement.GetProperty("ready").GetBoolean(), "Real WebGL renderer ready");
             Check(status.RootElement.GetProperty("frames").GetInt32() > 1, "Renderer produced frames");
+            Check(!status.RootElement.GetProperty("reduced").GetBoolean() && status.RootElement.GetProperty("time").GetDouble() > .1,
+                "Native animation clock advances with motion enabled");
             Check(Math.Abs(status.RootElement.GetProperty("displayOpacity").GetDouble() - .24) < .0001, "Live opacity applied");
             Check(!overlay.IsActive && Native.GetForegroundWindow() == foreground, "Overlay did not steal focus");
             var styles = Native.GetWindowLongPtr(overlay.Handle, Native.ExStyle).ToInt64();
@@ -63,8 +67,17 @@ internal static class SmokeTest
             await Task.Delay(300);
             using var still = JsonDocument.Parse(await overlay.ReadStatusAsync());
             Check(still.RootElement.GetProperty("time").GetDouble() == time, "Hidden renderer stops its clock");
+            await overlay.SetMotionForTestAsync(true);
+            await overlay.SetVisibleAsync(true, rect, 0);
+            await Task.Delay(200);
+            using var reduced = JsonDocument.Parse(await overlay.ReadStatusAsync());
+            Check(reduced.RootElement.GetProperty("reduced").GetBoolean(), "Native reduced-motion setting applies");
+            var reducedTime = reduced.RootElement.GetProperty("time").GetDouble();
+            await Task.Delay(200);
+            using var staticFrame = JsonDocument.Parse(await overlay.ReadStatusAsync());
+            Check(staticFrame.RootElement.GetProperty("time").GetDouble() == reducedTime, "Reduced motion stops animation while visible");
             File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new {
-                passed = true, os = Environment.OSVersion.ToString(), runtime = Environment.Version.ToString(),
+                passed = true, os = Environment.OSVersion.ToString(), runtime = Environment.Version.ToString(), webView2 = overlay.BrowserVersion,
                 renderer = status.RootElement.Clone(), visiblePixels, translucentPixels,
                 scope = "Own fixture only; not real Codex or physical multi-monitor interaction"
             }, new JsonSerializerOptions { WriteIndented = true }));

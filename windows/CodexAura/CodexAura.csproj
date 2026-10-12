@@ -24,7 +24,10 @@
     <Content Include="aura.ico" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
     <Content Include="../../web/**/*" Link="Web/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="../../README*.md;../../LICENSE*;../../README.txt;../../docs/*.md" Link="Docs/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../README*.md;../../LICENSE*;../../README.txt;../../DESCRIPTION.md" Link="Docs/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../docs/*.md" Link="Docs/docs/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../specs/*.md" Link="Docs/specs/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../web/CREDITS.html;../../web/PROMPTS.txt" Link="Docs/web/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="CopyThirdPartyNotices" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Docs/ThirdParty" />
