@@ -7,11 +7,15 @@ function cycleAt(elapsed, reduced = false) {
   return {outline: smooth(0, 1.4, t), color: smooth(1.6, 5.8, t),
     settled: smooth(5.2, 7, t), fade: 1};
 }
-if (typeof module !== 'undefined') module.exports = {cycleAt};
+function musicEnvelope(level, target, dt) {
+  return level + (target-level)*(1-Math.exp(-dt/(target > level ? .22 : .65)));
+}
+if (typeof module !== 'undefined') module.exports = {cycleAt, musicEnvelope};
 if (typeof document !== 'undefined') (async function () {
   const canvas = document.getElementById('scene'), ctx = canvas.getContext('2d');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let active = false, ready = false, time = 0, last = 0, raf = 0, frames = 0;
+  let musicLevel = 0, musicTarget = 0;
   let appearance = {opacity:.20, saturation:1.3, contrast:1.1, brightness:.7, character:"golden"};
   let editing = false, width = 1, height = 1, rig;
   let character = "golden", requestedCharacter = null, loadVersion = 0, loading = false, loadError = "";
@@ -37,13 +41,13 @@ if (typeof document !== 'undefined') (async function () {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
     if (state.color > 0) {
-      const character = rig.render(time, blink, wind, 0);
+      const character = rig.render(time, blink, wind, 0, false, reduced.matches ? 0 : musicLevel);
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, width, Math.max(0, scanY)); ctx.clip();
       ctx.globalAlpha = reduced.matches ? 1 : smooth(1.6, 2.1, time);
       ctx.drawImage(character, x, y, 1672*scale, 941*scale); ctx.restore();
     }
     if (state.settled < 1) {
-      const lines = rig.render(time, blink, wind, 0, true);
+      const lines = rig.render(time, blink, wind, 0, true, reduced.matches ? 0 : musicLevel);
       ctx.globalCompositeOperation = 'screen';
       ctx.globalAlpha = state.outline*(1-state.settled);
       ctx.drawImage(lines, x, y, 1672*scale, 941*scale);
@@ -75,15 +79,23 @@ if (typeof document !== 'undefined') (async function () {
     if (!active || !ready || reduced.matches) return;
     if (!last) last = now;
     const dt = now-last;
-    if (dt >= 1000/30-1) { time += Math.min(dt/1000, .1); last = now; draw(); }
+    if (dt >= 1000/30-1) {
+      const seconds = Math.min(dt/1000, .1);
+      time += seconds; musicLevel = musicEnvelope(musicLevel, musicTarget, seconds);
+      last = now; draw();
+    }
     raf = requestAnimationFrame(frame);
   }
   function start() { if (active && ready && !raf && !reduced.matches) raf = requestAnimationFrame(frame); }
   window.aura = {
     setActive(value) {
       active = !!value; cancelAnimationFrame(raf); raf = 0; last = 0;
+      if (!active || reduced.matches) musicLevel = musicTarget = 0;
       canvas.dataset.active = String(active);
       if (ready && active) { draw(); start(); }
+    },
+    setMusicLevel(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) musicTarget = clamp(value);
     },
     setAppearance(value, liveEdit = false) {
       for (const [key, min, max] of [['opacity',0,1],['saturation',0,2],['contrast',.5,2],['brightness',.2,1.5]]) {
@@ -98,7 +110,7 @@ if (typeof document !== 'undefined') (async function () {
       if (ready) draw();
     },
     replay() { time = 0; last = 0; editing = false; if (ready) { draw(); start(); } },
-    status() { return {ready, active, frames, time, character, loading, loadError, reduced: reduced.matches, appearance:{...appearance},
+    status() { return {ready, active, frames, time, character, loading, loadError, musicLevel, musicTarget, reduced: reduced.matches, appearance:{...appearance},
       displayOpacity: Number(canvas.style.opacity), reveal: cycleAt(time, reduced.matches)}; }
   };
   addEventListener('resize', resize);

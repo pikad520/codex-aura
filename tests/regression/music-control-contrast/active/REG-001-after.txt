@@ -1,0 +1,11 @@
+Compile exit: 0
+Command: .build/tests/music-contrast
+Run exit: 0
+Both time labels: maximum contrast 16.6712:1; pixels at >=4.5:1: 140
+PASS REG-001: time labels readable in dark-aqua
+Supplemental commands, all exit 0:
+.build/tests/music-contrast --light-backdrop
+.build/tests/music-contrast --dark-companion
+.build/tests/music-contrast --dark-companion --light-backdrop
+.build/tests/music-contrast --playing-demo
+.build/tests/music-contrast --playing-demo --light-backdrop

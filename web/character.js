@@ -18,7 +18,7 @@ function createCharacterRig(photo,closed,edges,closedEdges,character="golden") {
   const vertex=`attribute vec2 position; varying vec2 uv;void main(){uv=vec2((position.x+1.0)*.5,(1.0-position.y)*.5);gl_Position=vec4(position,0.,1.);}`;
   const fragment=`precision mediump float;
   varying vec2 uv;uniform sampler2D opened;uniform sampler2D shut;
-  uniform float clock,blink,wind,gaze;
+  uniform float clock,blink,wind,gaze,music;
   const vec2 size=vec2(1672.,941.);
   float band(float v,float a,float b,float feather){return smoothstep(a,a+feather,v)*(1.-smoothstep(b-feather,b,v));}
   vec2 hairOffset(vec2 p){
@@ -30,8 +30,11 @@ function createCharacterRig(photo,closed,edges,closedEdges,character="golden") {
     float lock=exp(-pow((p.x-1260.)/75.,2.))*band(p.y,140.,525.,65.);
     float face=smoothstep(1300.,1340.,p.x);
     float shoulder=smoothstep(730.,870.,p.y)*smoothstep(720.,1100.,p.x);
+    // Extra music motion stays in back hair, away from the ear, face and blouse.
+    float safe=(1.-smoothstep(1100.,1150.,p.x))*(1.-smoothstep(700.,780.,p.y)*smoothstep(620.,720.,p.x));
+    float gain=1.+clamp(music,0.,1.)*1.8*safe;
     return vec2(outer*sin(clock*.9-p.y*.003)*7.+middle*sin(clock*1.13-p.y*.003+1.)*4.+lock*sin(clock*1.07)*1.4,
-      outer*sin(clock*.8-p.y*.002)*1.5)*wind*(1.-face)*(1.-shoulder);
+      outer*sin(clock*.8-p.y*.002)*1.5)*wind*(1.-face)*(1.-shoulder)*gain;
     ` : `
     // Broad curls follow S-shaped paths, with anchored roots and delayed tips.
     float down=smoothstep(70.,880.,p.y);
@@ -43,13 +46,15 @@ function createCharacterRig(photo,closed,edges,closedEdges,character="golden") {
     float crown=exp(-pow((p.x-1140.)/160.,2.))*band(p.y,10.,320.,85.);
     float face=smoothstep(1220.,1290.,p.x)*band(p.y,115.,660.,45.);
     float shoulder=smoothstep(1080.,1200.,p.x)*smoothstep(630.,740.,p.y);
+    float safe=(1.-smoothstep(1010.,1090.,p.x))*(1.-smoothstep(570.,630.,p.y)*smoothstep(880.,1020.,p.x));
+    float gain=1.+clamp(music,0.,1.)*1.2*safe;
     float dx=outer*(sin(clock*1.02-p.y*.004)*13.+sin(clock*1.8+1.)*2.)
       +middle*sin(clock*1.21-p.y*.003+1.3)*8.
       +right*sin(clock*1.13-p.y*.004+2.)*5.
       +crown*sin(clock*1.25)*2.;
     dx+=gaze*(outer*3.+middle*2.+right);
     float dy=outer*sin(clock*.94-p.y*.004)*3.+middle*sin(clock*1.1+1.2)*2.;
-    return vec2(dx,dy)*wind*(1.-face)*(1.-shoulder);
+    return vec2(dx,dy)*wind*(1.-face)*(1.-shoulder)*gain;
     `}
   }
   const vec2 eyeCenter=${blue ? 'vec2(1425.,278.)' : 'vec2(1400.,306.)'};
@@ -98,8 +103,8 @@ function createCharacterRig(photo,closed,edges,closedEdges,character="golden") {
   try{[photo,closed,edges,closedEdges].forEach(image=>{const texture=gl.createTexture();textures.push(texture);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);});
     gl.uniform1i(gl.getUniformLocation(program,'opened'),0);gl.uniform1i(gl.getUniformLocation(program,'shut'),1);
   }catch(error){console.warn('Character textures unavailable:',error.message);dispose();return null;}
-  const uniforms=Object.fromEntries(['clock','blink','wind','gaze'].map(name=>[name,gl.getUniformLocation(program,name)]));
+  const uniforms=Object.fromEntries(['clock','blink','wind','gaze','music'].map(name=>[name,gl.getUniformLocation(program,name)]));
   let lost=false;surface.addEventListener('webglcontextlost',event=>{event.preventDefault();lost=true;});
-  return {dispose,render(clock,blink,wind,gaze,linework=false){if(lost)return linework?edges:photo;const offset=linework?2:0;for(let unit=0;unit<2;unit++){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,textures[offset+unit]);}gl.uniform1f(uniforms.clock,clock);gl.uniform1f(uniforms.blink,blink);gl.uniform1f(uniforms.wind,wind);gl.uniform1f(uniforms.gaze,gaze);gl.drawArrays(gl.TRIANGLES,0,6);return surface;}};
+  return {dispose,render(clock,blink,wind,gaze,linework=false,music=0){if(lost)return linework?edges:photo;const offset=linework?2:0;for(let unit=0;unit<2;unit++){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,textures[offset+unit]);}gl.uniform1f(uniforms.clock,clock);gl.uniform1f(uniforms.blink,blink);gl.uniform1f(uniforms.wind,wind);gl.uniform1f(uniforms.gaze,gaze);gl.uniform1f(uniforms.music,music);gl.drawArrays(gl.TRIANGLES,0,6);return surface;}};
 }
 if(typeof module!=='undefined')module.exports={blinkEnvelope,blinkAt};

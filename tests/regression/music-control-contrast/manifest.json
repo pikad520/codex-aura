@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "feature_key": "music-control-contrast",
+  "active_cases": [
+    {
+      "id": "REG-001",
+      "state": "active",
+      "provisional_category": "integration",
+      "final_category": "integration",
+      "carrier_level": "A",
+      "external_contract": "Transparent music time labels must remain readable over a dark target window without painting a toolbar backdrop.",
+      "input_fixture": {
+        "companion_appearance": "aqua",
+        "target_background": "#1e1e1e",
+        "language": "zh-CN"
+      },
+      "expected_output": "Each time label has at least 20 rendered pixels with contrast >= 4.5:1 against the dark target background.",
+      "actual_pre_fix_output": {
+        "exit_status": 1,
+        "maximum_text_contrast": 1.2553328461162736,
+        "readable_pixels_per_label": 0,
+        "evidence": [
+          "tests/regression/music-control-contrast/active/REG-001-before.json",
+          "tests/regression/music-control-contrast/active/REG-001-before.png",
+          "tests/regression/music-control-contrast/active/REG-001-before.txt"
+        ]
+      },
+      "artifact_path": "tests/regression/music-control-contrast/active/REG-001.swift",
+      "native_test_adapter_path": null,
+      "reproduction_command": "mkdir -p .build/tests && xcrun swiftc source/Localization.swift source/WindowPolicy.swift source/MusicPlayer.swift source/MusicPlaylist.swift source/MusicWindow.swift tests/regression/music-control-contrast/active/REG-001.swift -framework AppKit -framework AVFoundation -o .build/tests/music-contrast && .build/tests/music-contrast",
+      "replacement_links": [],
+      "selected_solution": "User selected white foreground with fine dark outlines; retain transparent backdrop and existing window level.",
+      "actual_post_fix_output": {
+        "exit_status": 0,
+        "maximum_text_contrast": 16.671155134594187,
+        "readable_pixels_per_label": 140,
+        "evidence": [
+          "tests/regression/music-control-contrast/active/REG-001-after.json",
+          "tests/regression/music-control-contrast/active/REG-001-after.png",
+          "tests/regression/music-control-contrast/active/REG-001-after.txt"
+        ]
+      },
+      "surrounding_verification": {
+        "appearance_matrix": "aqua/darkAqua against #1e1e1e/#f3f3f3: all exit 0",
+        "playing_demo": "Generated WAV, muted output, seek to 35 seconds; 0:35/1:00 labels remain readable on both backdrops."
+      }
+    }
+  ],
+  "pending_cases": [],
+  "archived_cases": []
+}

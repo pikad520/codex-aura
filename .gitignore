@@ -12,6 +12,7 @@
 
 # Local test output and language caches
 /.build/
+/.impeccable/review/
 __pycache__/
 *.py[cod]
 *.log

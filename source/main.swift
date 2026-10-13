@@ -15,13 +15,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     private var web: WKWebView!
     private var status: NSStatusItem!
     private var toggleItem: NSMenuItem!
+    private var musicControlsItem: NSMenuItem!
+    private var ripplesItem: NSMenuItem!
     private var statusLine: NSMenuItem!
     private var timer: Timer?
     private var ready = false
     private var shown = false
     private var enabled = true
+    private var musicControlsVisible = true
+    private var ripplesEnabled = true
     private var appearance = AppearanceSettings.defaults
     private var controls: ControlsWindow?
+    private var musicWindow: MusicWindow?
+    private var clickRipples: ClickRipple!
+    private var musicLevel = 0.0
+    private var musicBridgeBusy = false
     private var lastTargetPID: pid_t?
     private var pendingSave: DispatchWorkItem?
     private var didLoadSettings = false
@@ -75,11 +83,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         web.underPageBackgroundColor = .clear
         web.navigationDelegate = self
         panel.contentView!.addSubview(web)
+        clickRipples = ClickRipple(frame:panel.contentView!.bounds)
+        panel.contentView!.addSubview(clickRipples)
         web.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo:root)
+        musicWindow = MusicWindow(language:appearance.language)
+        musicWindow?.onLevel = { [weak self] level in
+            self?.musicLevel = level; self?.flushMusicLevel()
+        }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector:#selector(update),
             name:NSWorkspace.didActivateApplicationNotification, object:nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector:#selector(update),
             name:NSWorkspace.activeSpaceDidChangeNotification, object:nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector:#selector(update),
+            name:NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object:nil)
         timer = Timer(timeInterval:0.2, target:self, selector:#selector(update), userInfo:nil, repeats:true)
         RunLoop.main.add(timer!, forMode:.common)
         installHotKey()
@@ -100,6 +116,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         toggleItem = item("hide", #selector(toggle)); menu.addItem(toggleItem)
         menu.addItem(item("replay", #selector(replay)))
         menu.addItem(item("controls", #selector(showControls)))
+        musicControlsItem = item("hideMusicControls", #selector(toggleMusicControls)); menu.addItem(musicControlsItem)
+        ripplesItem = item("disableRipples", #selector(toggleRipples)); menu.addItem(ripplesItem)
         menu.addItem(.separator())
         menu.addItem(item("help", #selector(showReadme)))
         menu.addItem(item("quit", #selector(quit)))
@@ -109,9 +127,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     private func refreshLanguage() {
         for (key,item) in menuLabels { item.title = l[key] }
         toggleItem.title = l[enabled ? "hide" : "show"]
+        musicControlsItem.title = l[musicControlsVisible ? "hideMusicControls" : "showMusicControls"]
+        ripplesItem.title = l[ripplesEnabled ? "disableRipples" : "enableRipples"]
         status.button?.toolTip = l["overlayTitle"]
         status.button?.image?.accessibilityDescription = l["overlayTitle"]
         panel.title = l["overlayTitle"]
+        musicWindow?.applyLanguage(appearance.language)
         update()
     }
 
@@ -148,7 +169,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let front = NSWorkspace.shared.frontmostApplication
         let isTarget = front?.bundleIdentifier == WindowPolicy.targetBundle
         if isTarget { lastTargetPID = front?.processIdentifier }
-        let adjusting = front?.bundleIdentifier == "local.codex.aura" && controls?.window?.isVisible == true
+        let ownUI = controls?.window?.isVisible == true || musicWindow?.presentingDialog == true
+        let adjusting = front?.bundleIdentifier == "local.codex.aura" && ownUI
         let targetPID = isTarget ? front?.processIdentifier : adjusting ? lastTargetPID : nil
         let rect = targetPID.flatMap { targetRect(pid:$0) }
         let visible = ready && WindowPolicy.shouldShow(enabled:enabled,
@@ -162,17 +184,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             shown = visible
             web.evaluateJavaScript("window.aura?.setActive(\(visible))", completionHandler:nil)
         }
+        musicWindow?.follow(rect,visible:visible,controlsVisible:musicControlsVisible)
+        clickRipples.setActive(visible && ripplesEnabled && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
         statusLine.title = l[failureKey ?? (!ready ? "preparing" : !enabled ? "paused" : visible ? "playing" : "waiting")]
         if diagnosticMode, Date().timeIntervalSince(lastDiagnostic) > 1 {
             lastDiagnostic = Date()
+            let musicState: [String:Any] = ["playing":musicWindow?.music.isPlaying ?? false, "time":musicWindow?.music.currentTime ?? 0,
+                "duration":musicWindow?.music.duration ?? 0, "volume":musicWindow?.music.volume ?? 0,
+                "level":musicLevel, "frame":(musicWindow?.window?.frame).map(NSStringFromRect) ?? "",
+                "visible":musicWindow?.window?.isVisible ?? false, "isKey":musicWindow?.window?.isKeyWindow ?? false]
             let base: [String:Any] = ["visible":visible, "enabled":enabled, "ready":ready,
                 "frontBundle":front?.bundleIdentifier ?? "", "ignoresMouseEvents":panel.ignoresMouseEvents,
                 "canBecomeKey":panel.canBecomeKey, "isKey":panel.isKeyWindow,
-                "frame":NSStringFromRect(panel.frame), "targetFrame":rect.map(NSStringFromRect) ?? "", "appearance":appearance.json]
+                "frame":NSStringFromRect(panel.frame), "targetFrame":rect.map(NSStringFromRect) ?? "", "appearance":appearance.json,
+                "music":musicState]
             web.evaluateJavaScript("window.aura?.status()") { value, _ in
                 var data = base; data["renderer"] = value; data["timestamp"] = Date().timeIntervalSince1970
                 self.writeJSON(data, name:"diagnostics.json")
             }
+        }
+    }
+    private func flushMusicLevel() {
+        guard ready && shown && !musicBridgeBusy else { return }
+        let level = musicLevel; musicBridgeBusy = true
+        // One bridge call at a time; slow WebKit must not accumulate stale audio samples.
+        web.evaluateJavaScript("window.aura?.setMusicLevel(\(level))") { [weak self] _, _ in
+            guard let self else { return }
+            self.musicBridgeBusy = false
+            if self.musicLevel != level { self.flushMusicLevel() }
         }
     }
     private func writeJSON(_ value: [String:Any], name:String) {
@@ -182,6 +221,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         }
     }
     @objc func toggle() { enabled.toggle(); toggleItem.title = l[enabled ? "hide" : "show"]; update() }
+    @objc func toggleMusicControls() {
+        musicControlsVisible.toggle()
+        musicControlsItem.title = l[musicControlsVisible ? "hideMusicControls" : "showMusicControls"]
+        update()
+    }
+    @objc func toggleRipples() {
+        ripplesEnabled.toggle()
+        ripplesItem.title = l[ripplesEnabled ? "disableRipples" : "enableRipples"]
+        update()
+    }
     @objc func replay() { web.evaluateJavaScript("window.aura?.replay()", completionHandler:nil) }
     private func saveAppearance() {
         writeJSON(["version":2, "controlsVersion":1, "opacity":appearance.opacity, "saturation":appearance.saturation,
@@ -221,7 +270,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             web.evaluateJavaScript("window.aura.setAppearance(\(appearance.json))", completionHandler:nil)
             update()
         } else {
-            timer?.invalidate(); panel.orderOut(nil); failureKey = "loadFailed"; statusLine.title = l["loadFailed"]
+            timer?.invalidate(); panel.orderOut(nil); musicWindow?.follow(nil,visible:false)
+            clickRipples.setActive(false)
+            failureKey = "loadFailed"; statusLine.title = l["loadFailed"]
             if diagnosticMode { writeJSON(body, name:"renderer-error.json") }
             NSLog("Codex Aura renderer failed: %@", String(describing:body["message"]))
         }
@@ -237,6 +288,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     }
     func applicationWillTerminate(_ notification:Notification) {
         pendingSave?.cancel(); if didLoadSettings { saveAppearance() }
+        musicWindow?.stop()
+        clickRipples?.setActive(false)
         timer?.invalidate(); if let hotKey { UnregisterEventHotKey(hotKey) }
         if let eventHandler { RemoveEventHandler(eventHandler) }
         NSWorkspace.shared.notificationCenter.removeObserver(self)

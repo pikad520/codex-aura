@@ -5,8 +5,8 @@ app_dir="$package_dir/Codex Aura.app"
 mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources/Web"
 xcrun swiftc -O -target "$(uname -m)-apple-macosx12.0" \
   "$package_dir/source/Localization.swift" "$package_dir/source/WindowPolicy.swift" "$package_dir/source/AppearanceSettings.swift" \
-  "$package_dir/source/ControlsWindow.swift" "$package_dir/source/main.swift" \
-  -framework AppKit -framework WebKit -framework Carbon \
+  "$package_dir/source/ControlsWindow.swift" "$package_dir/source/MusicPlayer.swift" "$package_dir/source/MusicPlaylist.swift" "$package_dir/source/MusicWindow.swift" "$package_dir/source/ClickRipple.swift" "$package_dir/source/main.swift" \
+  -framework AppKit -framework WebKit -framework Carbon -framework AVFoundation \
   -o "$app_dir/Contents/MacOS/CodexAura"
 cp -R "$package_dir/web/." "$app_dir/Contents/Resources/Web/"
 mkdir -p "$app_dir/Contents/Resources/docs" "$app_dir/Contents/Resources/specs" "$app_dir/Contents/Resources/web"

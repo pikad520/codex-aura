@@ -1,0 +1,6 @@
+Command: xcrun swiftc source/Localization.swift source/WindowPolicy.swift source/MusicPlayer.swift source/MusicPlaylist.swift source/MusicWindow.swift tests/regression/music-control-contrast/active/REG-001.swift -framework AppKit -framework AVFoundation -o .build/tests/music-contrast
+Compile exit: 0
+Command: .build/tests/music-contrast
+Run exit: 1
+Both time labels: maximum contrast 1.2553:1; pixels at >=4.5:1: 0
+FAIL REG-001: transparent time labels disappear against dark background

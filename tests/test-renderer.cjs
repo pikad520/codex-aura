@@ -1,12 +1,19 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const {cycleAt} = require('../web/overlay.js');
+const {cycleAt, musicEnvelope} = require('../web/overlay.js');
 assert.equal(cycleAt(0).fade, 1);
 assert.equal(cycleAt(24).outline, 1);
 assert.equal(cycleAt(23.99).fade, 1);
 assert.deepEqual(cycleAt(40,true), {outline:1,color:1,settled:1,fade:1});
 for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=0 && v<=1);
+let strength=0;
+for(let i=0;i<30;i++) { const next=musicEnvelope(strength,1,1/30); assert(next>strength && next<=1); strength=next; }
+assert(strength>.98);
+const attack=musicEnvelope(0,1,1/30), release=1-musicEnvelope(1,0,1/30);
+assert(attack>release && attack<.15,'quick but smooth attack, slower release');
+for(let i=0;i<90;i++) strength=musicEnvelope(strength,0,1/30);
+assert(strength<.011,'pause/end returns smoothly to idle');
 
 // Exercise actual scheduling/bridge behavior with a small canvas host, not a copy of the logic.
 (async () => {
@@ -14,7 +21,7 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   const context2d = new Proxy({}, {get(target,key){return target[key] || (()=>{});}});
   const canvas = {dataset:{},style:{},getContext(){return context2d;}};
   const macMessages = [], windowsMessages = [], images = [];
-  let delayImages = false, disposed = 0;
+  let delayImages = false, disposed = 0, renderedMusic = 0;
   const sandbox = {console,
     webkit:{messageHandlers:{aura:{postMessage:value=>macMessages.push(value)}}},
     chrome:{webview:{postMessage:value=>windowsMessages.push(value)}}, innerWidth:1280, innerHeight:800, matchMedia:()=>reduced,
@@ -22,7 +29,7 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
     Image:class {set src(v){this.name=v;if(delayImages) images.push(this);else queueMicrotask(()=>this.onload());}},
     addEventListener(){}, cancelAnimationFrame(id){callbacks.delete(id);},
     requestAnimationFrame(fn){callbacks.set(++next,fn);return next;},
-    blinkAt:()=>0,createCharacterRig:()=>({render:()=>({}),dispose:()=>disposed++})};
+    blinkAt:()=>0,createCharacterRig:()=>({render:(_t,_b,_w,_g,_l,music)=>{renderedMusic=music;return {};},dispose:()=>disposed++})};
   sandbox.window = sandbox;
   const context = vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(require.resolve('../web/characters.js'),'utf8'),context);
@@ -34,11 +41,18 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   assert.equal(windowsMessages[0].status,'ready');
   assert.equal(callbacks.size,0,'no animation before native activation');
   sandbox.aura.setActive(true);
+  sandbox.aura.setMusicLevel(4);
+  assert.equal(sandbox.aura.status().musicTarget,1);
+  sandbox.aura.setMusicLevel(NaN); sandbox.aura.setMusicLevel('1');
+  assert.equal(sandbox.aura.status().musicTarget,1,'invalid bridge samples ignored');
   const before = sandbox.aura.status().frames;
   for(let now=1;now<=1001;now+=1000/60){const current=[...callbacks.values()];callbacks.clear();current.forEach(fn=>fn(now));}
   const frames = sandbox.aura.status().frames-before;
   assert(frames>=28 && frames<=31,`30fps budget: ${frames}`);
+  assert(renderedMusic>.98 && renderedMusic<=1,'smoothed strength reaches the actual rig');
   sandbox.aura.setActive(false);
+  assert.equal(sandbox.aura.status().musicLevel,0,'hiding clears stale strength');
+  assert.equal(sandbox.aura.status().musicTarget,0);
   assert.equal(callbacks.size,0,'hidden animation stops RAF entirely');
   const frozen = sandbox.aura.status().time;
   sandbox.aura.setActive(true);
@@ -76,6 +90,8 @@ for (let t=0;t<100;t+=.01) for (const v of Object.values(cycleAt(t))) assert(v>=
   sandbox.aura.setActive(false);sandbox.aura.setActive(true);
   assert.equal(sandbox.aura.status().time,finishedTime,'returning to Codex does not replay the intro');
   reduced.matches=true;reduced.changed();
+  sandbox.aura.setMusicLevel(1); sandbox.aura.setAppearance({opacity:.20});
+  assert.equal(renderedMusic,0,'Reduce Motion never applies music deformation');
   assert.equal(callbacks.size,0,'Reduce Motion does not run an animation loop');
   sandbox.aura.replay();
   assert.equal(sandbox.aura.status().time,0);

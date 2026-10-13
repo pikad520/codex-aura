@@ -1,6 +1,13 @@
 Codex Aura 1.5.0 — quick help / 使用说明 / 使い方
 
 English
+macOS music: choose a folder to autoplay its top-level audio. The transparent right-third
+toolbar beneath the character has playlist (5 visible rows), loop/random, previous/play/next and volume;
+seek/time sit below. Latin → pinyin → kana → other filename order. Previous uses
+play history; random avoids immediate repeats. Protected hair still follows music.
+The sun menu hides/shows music controls and disables/enables passive click ripples.
+Hiding controls keeps music/hair response; Reduce Motion disables ripples. Toggles apply for this run.
+Switching apps keeps audio playing; Quit stops it. No saved folder/position. Windows has no player.
 macOS: source-only. Install Xcode Command Line Tools, run ./build.sh, then
 open 'Codex Aura.app'. The build uses a local ad-hoc signature; no Developer ID
 or paid Apple developer account is needed. No Mac ZIP/DMG is distributed.
@@ -36,6 +43,12 @@ Silent uninstall preserves data. After quitting, data can be removed manually at
 %LOCALAPPDATA%\Codex Aura. Do not remove shared WebView2 Runtime.
 
 简体中文
+macOS 音乐：标题栏右侧三分之一的双行透明控件，位于人物下方且无背景。选文件夹自动播放，不含子文件夹；
+上排为文件夹、5 行可滚动歌单、循环/随机、上一首、播放暂停、下一首和音量，下排为进度与时间。
+文件名按字母、拼音、五十音、其他排序；上一首返回历史，随机不连续重复。发丝保护与平滑连动保留。
+太阳菜单可隐藏/显示音频控件、关闭/开启点击波纹，本次运行生效。隐藏控件继续播放和发丝响应；
+波纹只读监听，不改变原点击。减少动态效果时波纹关闭。
+切换应用继续播放，退出停止；不保存文件夹和进度。Windows 暂未提供播放器。
 macOS 只提供源码：安装 Xcode Command Line Tools，执行 ./build.sh，打开生成的
 Codex Aura.app。自动使用 ad-hoc 本地临时签名，无需付费开发者账号或 Developer ID。
 不分发 Mac ZIP/DMG。已验证 macOS 26.5.1（25F80）、arm64、Swift 6.3.2，目标应用
@@ -54,6 +67,12 @@ Windows 从系统“已安装的应用”卸载，可选清理数据。静默卸
 删除 %LOCALAPPDATA%\Codex Aura。保留其他应用共享的 WebView2 Runtime。
 
 日本語
+macOS 音楽：タイトルバー右側の キャラクターの下の背景なし 2 段ツールバー。フォルダー直下の音声を自動再生します。
+5 行のリスト、ループ/ランダム、前/再生/次、音量、下段の位置と時間を操作できます。
+ラテン文字、ピンイン、五十音、その他の順。前の曲は履歴を戻り、ランダムは同じ曲を続けません。
+髪の保護と滑らかな連動を維持。
+太陽メニューで音楽コントロールとクリックの波紋を切り替えます。今回の起動中に適用されます。
+非表示でも音楽と髪の反応を維持し、視差効果を減らす設定では波紋を停止。元のクリックは変更しません。切り替え中も再生、終了で停止。パスと位置は保存せず、Windows は未対応です。
 macOS はソースのみ提供します。Xcode Command Line Tools を導入し、./build.sh を
 実行して生成したアプリを開きます。ローカル ad-hoc 署名のため、有料開発者アカウントや
 Developer ID は不要です。Mac ZIP/DMG は提供しません。検証環境は macOS 26.5.1、
